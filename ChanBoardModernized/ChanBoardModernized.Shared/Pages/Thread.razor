@@ -1,0 +1,15 @@
+﻿@page "/thread/{threadId:String}"
+@using ChanBoardModernized.Shared.Components.Interfaces
+
+
+
+
+@code {
+    [Inject]
+    public NavigationManager NavigationManager { get; set; } = null!;
+    [Inject]
+    public IChanBoardHttpClient ChanBoardHttpClient { get; set; } = null!;
+
+    [Parameter]
+    public string? threadId { get; set; }
+}
