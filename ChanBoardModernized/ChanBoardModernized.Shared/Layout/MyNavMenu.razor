@@ -1,5 +1,32 @@
 ﻿
 
-@code {
+<Sidebar @ref="sidebar"
+    IconName="IconName.MenuApp"
+             Title="ChanBoardModernized"
+             DataProvider="SidebarDataProvider" />
 
+@code {
+    private Sidebar sidebar = default!;
+    IEnumerable<NavItem>? navItems;
+
+    private IEnumerable<NavItem> GetNavItems()
+    {
+        return new List<NavItem>
+        {
+            new NavItem() { Id = "home", Text = "Home", Href = "/", IconName = IconName.HouseDashFill },
+            new NavItem() { Id = "counter", Text = "Counter", Href = "/counter", IconName = IconName.PlusSquareFill },
+            new NavItem() { Id = "weather", Text = "Weather", Href = "/weather", IconName = IconName.ListNested },
+            new NavItem() { Id = "login", Text = "Login Page", Href = "/login", IconName = IconName.DoorOpenFill }
+        };
+    }
+
+    public void ToggleSidebar() => sidebar.ToggleSidebar();
+
+    private async Task<SidebarDataProviderResult> SidebarDataProvider(SidebarDataProviderRequest request)
+    {
+        if (navItems is null)
+            navItems = GetNavItems();
+
+        return await Task.FromResult(request.ApplyTo(navItems));
+    }
 }

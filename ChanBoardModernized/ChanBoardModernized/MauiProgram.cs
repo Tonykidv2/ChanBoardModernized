@@ -47,7 +47,7 @@ namespace ChanBoardModernized
 
             builder.Services.AddSingleton<IChanBoardHttpClient, ChanBoardHttpClient>();
             builder.Services.AddMauiBlazorWebView();
-            builder.Services.AddBootstrapBlazor();
+            builder.Services.AddBlazorBootstrap();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();

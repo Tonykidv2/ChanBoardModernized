@@ -1,13 +1,13 @@
 ﻿@using ChanBoardModernized.Shared.Components.Interfaces
+@using ChanBoardModernized.Shared.Services
 @inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<div class="bb-page">
+    <MyNavMenu @ref="myNavMenuRef"/>
 
     <main>
         <div class="top-row px-4">
+            @* <Icon Name="IconName.List" role="button" @onclick="() => myNavMenuRef.ToggleSidebar()" /> *@
             @if(isAuthenticated)
             {
                 <a onclick="@LogoutAsync" class="btn btn-secondary active" role="button" aria-pressed="true">Logout</a>
@@ -34,9 +34,13 @@
 
 @code {
     [Inject]
+    private IFormFactor FormFactor { get; set; } = null!;
+    [Inject]
     private IAuthState authState { get; set; } = null!;
     [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
+
+    private MyNavMenu myNavMenuRef = null!;
     private bool isAuthenticated => authState.IsAuthenticated;
 
     protected override async Task OnInitializedAsync()

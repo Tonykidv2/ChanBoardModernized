@@ -25,6 +25,8 @@ builder.Services.AddHttpClient("ChanAPIClient", client =>
     client.BaseAddress = new Uri("https://host.docker.internal:32001/");
 });
 builder.Services.AddSingleton<IChanBoardHttpClient, ChanBoardHttpClient>();
+builder.Services.AddBlazorBootstrap();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

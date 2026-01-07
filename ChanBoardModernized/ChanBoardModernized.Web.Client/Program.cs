@@ -20,6 +20,6 @@ builder.Services.AddHttpClient("ChanAPIClient", client =>
     client.BaseAddress = new Uri("https://localhost:32001/");
 });
 builder.Services.AddSingleton<IChanBoardHttpClient, ChanBoardHttpClient>();
-
+builder.Services.AddBlazorBootstrap();
 
 await builder.Build().RunAsync();
