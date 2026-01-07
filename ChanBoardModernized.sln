@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36623.8
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChanBoardModernized", "ChanBoardModernized\ChanBoardModernized\ChanBoardModernized.csproj", "{8E7616C0-0D16-4D34-BA3C-8BC750376375}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChanBoardModernized.Shared", "ChanBoardModernized\ChanBoardModernized.Shared\ChanBoardModernized.Shared.csproj", "{FEF24A99-D06D-4F98-9252-0788C8C7B16C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChanBoardModernized.Web", "ChanBoardModernized\ChanBoardModernized.Web\ChanBoardModernized.Web.csproj", "{C600BA02-8595-4910-B7A5-8DBADB5FF6DA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChanBoardModernized.Web.Client", "ChanBoardModernized\ChanBoardModernized.Web.Client\ChanBoardModernized.Web.Client.csproj", "{BF653CA3-781B-4A92-8F4C-5344A44F0297}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChanBoardModernized.API", "ChanBoardModernized.API\ChanBoardModernized.API.csproj", "{11337F14-2B0F-406E-84DD-69BCE46D6E97}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChanBoardModernized.Shared.Components", "ChanBoardModernized.Shared.Components\ChanBoardModernized.Shared.Components.csproj", "{4462196B-3292-4B58-8934-EAE7EA01DDDE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8E7616C0-0D16-4D34-BA3C-8BC750376375}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E7616C0-0D16-4D34-BA3C-8BC750376375}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E7616C0-0D16-4D34-BA3C-8BC750376375}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{8E7616C0-0D16-4D34-BA3C-8BC750376375}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E7616C0-0D16-4D34-BA3C-8BC750376375}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FEF24A99-D06D-4F98-9252-0788C8C7B16C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEF24A99-D06D-4F98-9252-0788C8C7B16C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEF24A99-D06D-4F98-9252-0788C8C7B16C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEF24A99-D06D-4F98-9252-0788C8C7B16C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C600BA02-8595-4910-B7A5-8DBADB5FF6DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C600BA02-8595-4910-B7A5-8DBADB5FF6DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C600BA02-8595-4910-B7A5-8DBADB5FF6DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C600BA02-8595-4910-B7A5-8DBADB5FF6DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF653CA3-781B-4A92-8F4C-5344A44F0297}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF653CA3-781B-4A92-8F4C-5344A44F0297}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF653CA3-781B-4A92-8F4C-5344A44F0297}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF653CA3-781B-4A92-8F4C-5344A44F0297}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11337F14-2B0F-406E-84DD-69BCE46D6E97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11337F14-2B0F-406E-84DD-69BCE46D6E97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11337F14-2B0F-406E-84DD-69BCE46D6E97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11337F14-2B0F-406E-84DD-69BCE46D6E97}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4462196B-3292-4B58-8934-EAE7EA01DDDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4462196B-3292-4B58-8934-EAE7EA01DDDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4462196B-3292-4B58-8934-EAE7EA01DDDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4462196B-3292-4B58-8934-EAE7EA01DDDE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {255DC1A5-AD66-4226-830D-5278995B6587}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,105 @@
+﻿@page "/login"
+@using ChanBoardModernized.Shared.Components.DTOs
+@using ChanBoardModernized.Shared.Components.Interfaces
+@using ChanBoardModernized.Shared.Services
+
+<div class="container">
+
+    <div class="row vh-100">
+        <div class="col-sm-4 mx-auto my-auto border shadow-lg">
+            <h1>Login</h1>
+            <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <div class="mb-3">
+                    <label class="form-label">Username:</label>
+                    <InputText @bind-Value="loginModel.Username" class="form-control"/>
+                    <ValidationMessage For="@(() => loginModel.Username)" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password:</label>
+                    <InputText type="password" @bind-Value="loginModel.Password" class="form-control" />
+                    <ValidationMessage For="@(() => loginModel.Password)" />
+                </div>
+                <div class="mb-3">
+                    @if (!busy)
+                    {
+                        <button type="submit" class="btn btn-success mb-3">Login</button>
+                    }
+                    else
+                    {
+                        <button type="button" disabled class="btn btn-secondary mb-3">Logging in...</button>
+                    }
+
+                    <button type="button" @onclick="NavigateToRegister" class="btn btn-secondary mb-3">Registor</button>
+                </div>
+                @if(HasError)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @ErrorMessage
+                    </div>
+                }
+            </EditForm>
+        </div>
+    </div>
+
+
+</div>
+
+@code {
+    [Inject]
+    NavigationManager NavigationManager { get; set; } = null!;
+    [Inject]
+    IChanBoardHttpClient chanBoardHttpClient { get; set; } = null!;
+    [Inject]
+    IAuthState authState { get; set; } = null!;
+
+    private LoginDTO loginModel = new LoginDTO();
+    private bool busy = false;
+    private bool HasError = false;
+    private string ErrorMessage = string.Empty;
+    private async Task HandleLogin()
+    {
+        busy = true;
+        HasError = false;
+        try
+        {
+            var result = await chanBoardHttpClient.LoginAsync(loginModel);
+            if (!string.IsNullOrEmpty(result.Token))
+            {
+                // Authenticate the user after successful login
+                await authState.LoadAsync(); 
+
+                if(authState.IsAuthenticated)
+                {
+                    // currently service saves token in "local storage", so no need to do anything here ATM
+
+                }
+                // Navigate to the home page or dashboard after successful login
+                NavigationManager.NavigateTo("/");
+                HasError = false;
+            }
+            else
+            {
+                // Handle invalid login (e.g., show error message)
+                HasError = true;
+                ErrorMessage = result.ErrorMessage ?? "Login failed. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle login failure (e.g., show error message)
+            HasError = true;
+            ErrorMessage = $"Server error has occurred";
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private void NavigateToRegister()
+    {
+        NavigationManager.NavigateTo("/register"); // Navigate to the register page
+    }
+}

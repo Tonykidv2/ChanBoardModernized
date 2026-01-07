@@ -1,0 +1,6 @@
+@ChanBoardModernized.API_HostAddress = https://localhost:32769
+
+GET {{ChanBoardModernized.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

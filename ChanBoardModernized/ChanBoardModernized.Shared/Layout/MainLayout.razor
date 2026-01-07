@@ -1,0 +1,54 @@
+﻿@using ChanBoardModernized.Shared.Components.Interfaces
+@inherits LayoutComponentBase
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            @if(isAuthenticated)
+            {
+                <a onclick="@LogoutAsync" class="btn btn-secondary active" role="button" aria-pressed="true">Logout</a>
+            }
+            else
+            {
+                <a href="/login" class="btn btn-secondary active" role="button" aria-pressed="true">Login</a>
+            }
+            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+
+@code {
+    [Inject]
+    private IAuthState authState { get; set; } = null!;
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = null!;
+    private bool isAuthenticated => authState.IsAuthenticated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await authState.LoadAsync();
+        await base.OnInitializedAsync();
+    }
+
+    public async Task LogoutAsync()
+    {
+        await authState.LogoutAsync();
+        //navigate to the login page or refresh the UI
+        NavigationManager.NavigateTo("/login");
+    }
+}
