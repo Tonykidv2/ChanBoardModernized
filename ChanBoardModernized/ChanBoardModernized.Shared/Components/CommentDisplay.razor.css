@@ -78,8 +78,8 @@
 
 .outer-container {
     /* use normal flow so float works and text can wrap around images */
-    display: block;
-    width: 100%;
+    display: flex;
+    width: fit-content;
     box-sizing: border-box;
 }
 
@@ -98,7 +98,7 @@
 
 .post-container,
 .op-container {
-    background-color: antiquewhite;
+    background-color: darksalmon;
     min-height: 100px;
     padding: .5rem;
     width: 100%;
