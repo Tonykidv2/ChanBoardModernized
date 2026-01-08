@@ -1,8 +1,20 @@
-﻿@page "/thread/{threadId:String}"
+﻿@* @page "/thread/{ThreadId:guid}" *@
+@page "/thread"
+
+@using ChanBoardModernized.Shared.Components
+@using ChanBoardModernized.Shared.Components.DTOs
 @using ChanBoardModernized.Shared.Components.Interfaces
 
 
-
+<div>
+    @foreach (var comment in commentDTOs)
+    {
+        <CommentDisplay CommentDTO="comment" 
+            IsFirstComment="@(comment == commentDTOs.First())" 
+            IsOP="@(comment == commentDTOs.First())" />
+        <br/>
+    }
+</div>
 
 @code {
     [Inject]
@@ -11,5 +23,24 @@
     public IChanBoardHttpClient ChanBoardHttpClient { get; set; } = null!;
 
     [Parameter]
-    public string? threadId { get; set; }
+    public Guid ThreadId { get; set; }
+
+    public List<CommentDTO> commentDTOs { get; set; } = new List<CommentDTO>();
+
+    protected override void OnInitialized()
+    {
+        //Seed commentDTO
+        SeedCommentDTOs();
+        base.OnInitialized();
+    }
+
+    private void SeedCommentDTOs()
+    {
+        commentDTOs = new List<CommentDTO>()
+        {
+            new CommentDTO() { PostDigits = 1234567890, Title = "First Post", Author = "User1", Content = "This is the first post in the thread.", CreatedAt = DateTime.UtcNow.AddHours(-2), PhotoID = Guid.NewGuid() },
+            new CommentDTO() { PostDigits = 1234567891, Title = "", Author = "User2", Content = "This is a reply to the first post.", CreatedAt = DateTime.UtcNow.AddHours(-1), PhotoID = Guid.Empty },
+            new CommentDTO() { PostDigits = 1234567892, Title = "", Author = "", Content = "This is another reply to the first post.", CreatedAt = DateTime.UtcNow.AddMinutes(-30), PhotoID = Guid.NewGuid() }
+        };
+    }
 }

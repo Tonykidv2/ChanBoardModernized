@@ -9,6 +9,7 @@ public class Comment
     public Guid Id { get; set; }
     [MaxLength(500)]
     public string TextContent { get; set; } = null!;
+    public int PostDigits { get; set; }
     public DateTime CreatedAt { get; set; }
     public Guid CommentPhotoId { get; set; }
     public Guid UserId { get; set; }

@@ -36,6 +36,10 @@ main {
         text-overflow: ellipsis;
     }
 
+.chan-background-style {
+    background: beige;
+}
+
 @media (max-width: 640.98px) {
     .top-row {
         justify-content: space-between;
