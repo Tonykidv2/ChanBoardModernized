@@ -1,4 +1,4 @@
-.outer-container {
+/*.outer-container {
     display: flex;
 }
 
@@ -7,7 +7,7 @@
 }
 
 .post-container {
-    background: antiquewhite;
+    background-color: antiquewhite;
     min-height: 100px;
     padding: .5rem;
     min-width:500px;
@@ -74,4 +74,109 @@
     //display: inline;
     padding-top: .5rem;
     display: block;
+}*/
+
+.outer-container {
+    /* use normal flow so float works and text can wrap around images */
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+    /* clearfix so the container encloses floated elements */
+    .outer-container::after {
+        content: "";
+        display: block;
+        clear: both;
+    }
+
+.reply-symbol {
+    margin: .25rem .25rem 0 0;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.post-container,
+.op-container {
+    background-color: antiquewhite;
+    min-height: 100px;
+    padding: .5rem;
+    width: 100%;
+    max-width: 900px;
+    box-sizing: border-box;
+    display: block;
+}
+
+.top-level-details {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.thread-title {
+    color: red;
+    font-size: clamp(1rem, 2.2vw, 1.25rem);
+    margin-right: .5rem;
+}
+
+.user-name {
+    color: green;
+    margin-right: .5rem;
+}
+
+.date-time {
+    margin-right: .5rem;
+}
+
+.temp-filename-style {
+    text-decoration-line: underline;
+    color: blue;
+}
+
+.comment-body,
+.op-body {
+    line-height: 1.4;
+}
+
+/* restore inline image behavior on wider screens */
+.image-container {
+    float: left;
+    margin: 0 10px 6px 0;
+    width: auto;
+}
+
+/* image scales but stays inline */
+.post-image {
+    width: clamp(72px, 20vw, 150px);
+    max-width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.comment-text {
+    padding-top: .5rem;
+    display: block;
+    word-break: break-word;
+}
+
+/* Small screens: stack image above content for readability */
+@media (max-width: 600px) {
+    .image-container {
+        float: none;
+        width: 100%;
+        margin: 0 0 .5rem 0;
+    }
+
+    .post-container,
+    .op-container {
+        padding: .6rem;
+        max-width: 100%;
+    }
+
+    .top-level-details {
+        gap: .25rem;
+    }
 }
