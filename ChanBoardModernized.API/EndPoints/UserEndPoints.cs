@@ -8,7 +8,6 @@ namespace ChanBoardModernized.API.EndPoints;
 
 public static class UserEndPoints
 {
-
     public static IEndpointRouteBuilder MapUserEndPoints(this IEndpointRouteBuilder app)
     {
         //Get user by name

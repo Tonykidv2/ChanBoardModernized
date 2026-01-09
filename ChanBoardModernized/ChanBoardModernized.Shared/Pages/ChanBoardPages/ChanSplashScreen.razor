@@ -1,0 +1,121 @@
+﻿@page "/modernchanhome"
+@using ChanBoardModernized.Shared.Components.DTOs
+@using ChanBoardModernized.Shared.Components.Interfaces
+
+<div class="center-photo">
+    <Image Src="images/temp_logo.png" 
+           Alt="Modern Chan Splash Image"
+           Class="rounded"/>  
+</div>
+<div class="intro-style">
+    <Card class="card-style">
+        <CardHeader>
+            Welcome to Modern Chan! Powered by .NET MAUI
+        </CardHeader>
+        <CardBody>
+            <CardTitle>
+                A Modern Take on Image Boards using Blazor MAUI
+            </CardTitle>
+            <CardText>
+                This is a "modernized" image board platform inspired by traditional chan boards. 
+                Explore various boards, create threads, and engage with the community in a user-friendly environment.
+            </CardText>
+        </CardBody>
+    </Card>
+</div>
+
+<div>
+    <Card class="card-style">
+        <CardHeader>
+            Boards
+        </CardHeader>
+        <CardBody>
+            <CardText>
+                <!--List all available boards-->
+                @if (HasErrors)
+                {
+                    <p class="text-danger">Error loading boards. Please try again later.</p>
+                    <!-- Refresh button -->
+                    <Button Color="ButtonColor.Primary" onclick="@(() => ReloadBoards())">Reload Boards</Button>
+                }
+                else if (Boards.Count == 0) 
+                {
+                    <p>Loading boards...</p>
+                }
+                else
+                {
+                    <ul>
+                        @foreach (var board in Boards)
+                        {
+                            <li>
+                                <a href="@($"/board/{board.ShortName}")">/ @board.ShortName / - @board.Description</a>
+                            </li>
+                        }
+                    </ul>
+                }
+            </CardText>
+        </CardBody>
+    </Card>
+</div>
+
+@if(AuthState.IsAuthenticated && AuthState.IsInRole(Components.UserRole.Admin))
+{
+    <div class="admin-panel">
+        <Card TextAlignment="Alignment.Center" class="card-style">
+            <CardHeader>
+                Admin Panel
+            </CardHeader>
+            <CardBody>
+                <CardText>
+                    <p class="text-muted">* Admin dashboard is under construction *</p>
+                    <p>Welcome, Admin! Here you can manage the boards and users.</p>
+                    <Button Color="ButtonColor.Danger" onclick="@(() => GoToAdminDashboard())">Go to Admin Dashboard</Button>
+                </CardText>
+            </CardBody>
+        </Card>
+    </div>
+}
+
+@code {
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject]
+    private IAuthState AuthState { get; set; } = null!;
+    [Inject]
+    private IChanBoardHttpClient ChanBoardHttpClient { get; set; } = null!;
+
+    private List<BoardDTO> Boards { get; set; } = new List<BoardDTO>();
+
+    private bool HasErrors { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Boards = await ChanBoardHttpClient.GetBoards();
+        }
+        catch (Exception ex)
+        {
+            HasErrors = true;   
+        }
+        await base.OnInitializedAsync();
+    }
+
+    private async void ReloadBoards()
+    {
+        HasErrors = false;
+        try
+        {
+            Boards = await ChanBoardHttpClient.GetBoards();
+        }
+        catch (Exception ex)
+        {
+            HasErrors = true;
+        }
+    }
+
+    private void GoToAdminDashboard()
+    {
+        NavigationManager.NavigateTo("/admindashboard");
+    }
+}

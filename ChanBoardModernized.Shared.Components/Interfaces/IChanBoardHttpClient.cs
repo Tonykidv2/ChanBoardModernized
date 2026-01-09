@@ -1,9 +1,4 @@
 ﻿using ChanBoardModernized.Shared.Components.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ChanBoardModernized.Shared.Components.Interfaces;
 
@@ -18,4 +13,8 @@ public interface IChanBoardHttpClient
     Task<List<UserDTO>> GetAllUsersAsync();
 
     Task<UserDTO?> GetUserByUsernameAsync(string username);
+
+    Task<List<BoardDTO>> GetBoards();
+
+    Task<BoardResponseDTO> CreateBoard(BoardDTO boardDto);
 }

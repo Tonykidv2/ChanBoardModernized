@@ -1,0 +1,8 @@
+﻿@page "/board/{ShortName}"
+
+<h3>Welcome to /@ShortName/</h3>
+
+@code {
+    [Parameter]
+    public string ShortName { get; set; } = string.Empty;
+}

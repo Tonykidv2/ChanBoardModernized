@@ -13,4 +13,5 @@ public class ThreadDTO
     public string Content { get; set; } = string.Empty;
     public DateTime CreatedDate { get; set; }
     public List<string> Tags { get; set; } = new List<string>();
+    public List<CommentDTO> Comments { get; set; } = new List<CommentDTO>();
 }

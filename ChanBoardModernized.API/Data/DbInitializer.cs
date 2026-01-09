@@ -10,9 +10,32 @@ public static class DbInitializer
         ChanContext context,
         IPasswordHasher<User> passwordHasher)
     {
-        if (await context.Users.AnyAsync(u => u.Username == "admin"))
-            return;
+        if (!await context.Users.AnyAsync(u => u.Username == "admin"))
+        {
+            var defaultUsers = DefaultUsers(passwordHasher);
+            foreach (var user in defaultUsers)
+            {
+                context.Users.Add(user);
+            }
+        }
 
+        if(!await context.Boards.AnyAsync())
+        {
+            var defaultBoard = new Entities.Board
+            {
+                Id = Guid.NewGuid(),
+                Name = "General",
+                ShortName = "gen",
+                Description = "General discussion board"
+            };
+            context.Boards.Add(defaultBoard);
+        }
+
+        await context.SaveChangesAsync();
+    }
+
+    private static List<User> DefaultUsers(IPasswordHasher<User> passwordHasher)
+    {
         var admin = new User
         {
             Id = Guid.Parse("B22698B8-44A2-4115-9631-1C2D1E2AC5F7"),
@@ -20,7 +43,6 @@ public static class DbInitializer
             Role = Shared.Components.UserRole.Admin,
         };
         admin.PasswordHash = passwordHasher.HashPassword(admin, "adminpassword");
-
 
         var user = new User
         {
@@ -38,11 +60,7 @@ public static class DbInitializer
         };
         moderator.PasswordHash = passwordHasher.HashPassword(moderator, "modpassword");
 
-
-        context.Users.Add(admin);
-        context.Users.Add(user);
-        context.Users.Add(moderator);
-        await context.SaveChangesAsync();
+        return new List<User> { admin, user, moderator };
     }
 }
 

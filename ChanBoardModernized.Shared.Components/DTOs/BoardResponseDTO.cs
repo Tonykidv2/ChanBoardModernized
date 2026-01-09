@@ -2,7 +2,7 @@
 
 namespace ChanBoardModernized.Shared.Components.DTOs;
 
-public record AuthResponseDto(string Token, string? ErrorMessage)
+public record BoardResponseDTO(BoardDTO? BoardDTO, string? ErrorMessage)
 {
     [JsonIgnore]
     public bool hasError => !string.IsNullOrEmpty(ErrorMessage);

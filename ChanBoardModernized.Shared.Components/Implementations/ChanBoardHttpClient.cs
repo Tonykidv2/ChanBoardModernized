@@ -80,4 +80,43 @@ public class ChanBoardHttpClient : IChanBoardHttpClient
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         }
     }
+
+    public async Task<List<BoardDTO>> GetBoards()
+    {
+        var result = new List<BoardDTO>();
+        await AddAuthorizationHeaderAsync();
+        result = await _httpClient.GetFromJsonAsync<List<BoardDTO>>("api/boards")
+            ?? new List<BoardDTO>();
+        return result;
+    }
+
+    public async Task<BoardResponseDTO> CreateBoard(BoardDTO boardDto)
+    {
+        try
+        {
+            await AddAuthorizationHeaderAsync();
+
+            var response = await _httpClient.PostAsJsonAsync("api/boards", boardDto);
+            if (response.IsSuccessStatusCode)
+            {
+                var createResponse =
+                    await response.Content.ReadFromJsonAsync<BoardResponseDTO>();
+
+                if (createResponse != null)
+                {
+                    return createResponse;
+                }
+
+                return new BoardResponseDTO(null, "Invalid response from server");
+            }
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            return new BoardResponseDTO(null, errorMessage);
+        }
+        catch(Exception ex)
+        {
+            var errorMsg = $"An error occurred: {ex.Message}";
+            return new BoardResponseDTO(null, errorMsg);
+        }
+
+    }
 }

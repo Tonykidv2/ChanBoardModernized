@@ -1,0 +1,93 @@
+﻿@page "/admindashboard"
+@using ChanBoardModernized.Shared.Components.DTOs
+@using ChanBoardModernized.Shared.Components.Interfaces
+<h3>AdminDashBoard</h3>
+
+@if (AuthState.IsAuthenticated && AuthState.IsInRole(Components.UserRole.Admin))
+{
+    <Toasts class="p-3" Messages="messages" AutoHide="true" StackLength="3" Placement="ToastsPlacement.TopRight" />
+
+    <!-- Created board form-->
+    <Card TextAlignment="Alignment.Center">
+        <CardHeader>
+            Create New Board
+        </CardHeader>
+        <CardBody>
+            <EditForm Model="newBoardDTO" OnValidSubmit="HandleCreateBoard">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <div class="mb-3">
+                    <label class="form-label">Name:</label>
+                    <InputText @bind-Value="newBoardDTO.Name" class="form-control" />
+                    <ValidationMessage For="@(() => newBoardDTO.Name)" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Short Name:</label>
+                    <InputText @bind-Value="newBoardDTO.ShortName" class="form-control" />
+                    <ValidationMessage For="@(() => newBoardDTO.ShortName)" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description:</label>
+                    <InputText @bind-Value="newBoardDTO.Description" class="form-control" />
+                    <ValidationMessage For="@(() => newBoardDTO.Description)" />
+                </div>
+                <button type="submit" class="btn btn-primary">Create Board</button>
+            </EditForm>
+        </CardBody>
+    </Card>
+}
+else
+{
+    <p >You do not have permission to access this page.</p>
+}
+
+@code {
+    [Inject]
+    private IAuthState AuthState { get; set; } = null!;
+    [Inject]
+    private IChanBoardHttpClient ChanBoardHttpClient { get; set; } = null!;
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = null!;
+
+    private BoardDTO newBoardDTO = new BoardDTO();
+
+    List<ToastMessage> messages = new List<ToastMessage>();
+
+    private async Task HandleCreateBoard()
+    {
+        // Call API to create new board
+        var result = await ChanBoardHttpClient.CreateBoard(newBoardDTO);
+        if (result != null)
+        {
+            // Clear form
+            var tempShortName = newBoardDTO.ShortName;
+            var newMessage = new ToastMessage
+            {
+                Type = ToastType.Success,
+                Title = "Success",
+                //Message = "Board created successfully!",
+                Content = @<div>Board created successfully! <button class="btn btn-sm btn-primary" @onclick="() => NavigateToBoard(tempShortName)">Go to new Board</button></div>,
+                HelpText = $"{DateTime.Now}"
+            };
+            newBoardDTO = new BoardDTO();
+            messages.Add(newMessage);
+        }
+        else
+        {
+            var newMessage = new ToastMessage
+            {
+                Type = ToastType.Danger,
+                Title = "Error",
+                Message = $"Failed to create board: {result.ErrorMessage}",
+                HelpText = $"{DateTime.Now}"
+            };
+            messages.Add(newMessage);
+        }
+    }
+
+    private void NavigateToBoard(string ShortName)
+    {
+        // Navigate to the newly created board
+        NavigationManager.NavigateTo($"/board/{ShortName}");
+    }
+}

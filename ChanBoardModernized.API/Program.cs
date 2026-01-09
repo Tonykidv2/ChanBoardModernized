@@ -1,6 +1,7 @@
 using ChanBoardModernized.API.Data;
 using ChanBoardModernized.API.Data.Entities;
 using ChanBoardModernized.API.EndPoints;
+using ChanBoardModernized.API.EndPointsl;
 using ChanBoardModernized.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -59,12 +60,13 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthentication(); //Call this first!!!
-app.UseAuthorization();
+app.UseAuthorization(); //Then this for auth
 
 app.MapControllers();
 
 app.MapAuthEndPoints();
 app.MapUserEndPoints();
+app.MapChanBoardEndPoints();
 
 app.MapGet("/", () => "Welcome to ChanBoardModernized API!");
 
