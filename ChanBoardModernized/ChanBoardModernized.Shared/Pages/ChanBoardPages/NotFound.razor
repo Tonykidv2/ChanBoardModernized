@@ -1,0 +1,27 @@
+﻿<!--404 page-->
+
+<h1>404 - Page Not Found</h1>
+<p>Sorry, I did something wrong and navigated to the wrong page or that page hasn't been created yet</p>
+<p>Hey dev, please check the URL or return to the homepage.</p>
+
+<p>Current URL: @currentUrl</p> 
+
+<button class="btn btn-primary" @onclick="NavigateToHome">Go to Homepage</button>
+
+@code {
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = null!;
+
+    private string? currentUrl;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.Uri;
+    }
+
+    // Next, let's add a method to navigate back to the homepage
+    private void NavigateToHome()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}

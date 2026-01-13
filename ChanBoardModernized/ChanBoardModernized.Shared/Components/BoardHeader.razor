@@ -91,9 +91,6 @@
     [Inject]
     private IDispatcher Dispatcher { get; set; } = null!;
 
-    //[Parameter]
-    //public BoardDTO CurrentBoard { get; set; } = null!;
-
     private List<BoardDTO> BoardDTOs { get; set; } = new List<BoardDTO>();
     private bool Loading { get; set; } = true;
     private bool HasErrors { get; set; } = false;
