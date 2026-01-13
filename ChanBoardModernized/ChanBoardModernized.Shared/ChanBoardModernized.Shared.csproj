@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Blazor.Bootstrap" Version="3.5.0" />
+    <PackageReference Include="Fluxor.Blazor.Web" Version="6.9.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.8" />
   </ItemGroup>
 

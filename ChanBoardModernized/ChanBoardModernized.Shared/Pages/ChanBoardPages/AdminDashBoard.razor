@@ -38,7 +38,7 @@
 }
 else
 {
-    <p >You do not have permission to access this page.</p>
+    <p>You do not have permission to access this page.</p>
 }
 
 @code {
@@ -57,7 +57,7 @@ else
     {
         // Call API to create new board
         var result = await ChanBoardHttpClient.CreateBoard(newBoardDTO);
-        if (result != null)
+        if (!result.hasError)
         {
             // Clear form
             var tempShortName = newBoardDTO.ShortName;

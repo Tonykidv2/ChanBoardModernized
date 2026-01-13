@@ -1,6 +1,7 @@
 ﻿@page "/modernchanhome"
 @using ChanBoardModernized.Shared.Components.DTOs
 @using ChanBoardModernized.Shared.Components.Interfaces
+@using ChanBoardModernized.Shared.States
 
 <div class="center-photo">
     <Image Src="images/temp_logo.png" 
@@ -48,7 +49,7 @@
                         @foreach (var board in Boards)
                         {
                             <li>
-                                <a href="@($"/board/{board.ShortName}")">/ @board.ShortName / - @board.Description</a>
+                                <a href="" @onclick="@(() => NavigateToBoard(board.ShortName))">/ @board.ShortName / - @board.Description</a>
                             </li>
                         }
                     </ul>
@@ -83,6 +84,8 @@
     private IAuthState AuthState { get; set; } = null!;
     [Inject]
     private IChanBoardHttpClient ChanBoardHttpClient { get; set; } = null!;
+    [Inject]
+    private IDispatcher Dispatcher { get; set; } = null!;
 
     private List<BoardDTO> Boards { get; set; } = new List<BoardDTO>();
 
@@ -117,5 +120,19 @@
     private void GoToAdminDashboard()
     {
         NavigationManager.NavigateTo("/admindashboard");
+    }
+
+    private void NavigateToBoard(string shortName)
+    {
+        var board = Boards.FirstOrDefault(b => b.ShortName.Equals(shortName, StringComparison.OrdinalIgnoreCase));
+        if (board != null) // Check if the board exists
+        {
+            Dispatcher.Dispatch(new SetCurrentBoard(board));
+            NavigationManager.NavigateTo($"/board/{board.ShortName}");
+        }
+        else
+        {
+            // Handle the case where the board was not found, if necessary
+        }
     }
 }

@@ -1,0 +1,133 @@
+﻿@inherits FluxorComponent
+
+@using ChanBoardModernized.Shared.Components.DTOs
+@using ChanBoardModernized.Shared.Components.Interfaces
+@using ChanBoardModernized.Shared.States
+
+
+<div class="header-chan">
+    <!--Available Boards list-->
+    <div class="dropdown-style">
+        <Dropdown Color="DropdownColor.Secondary">
+            <DropdownToggleButton>Select Board</DropdownToggleButton>
+            <DropdownMenu>
+                @if (Loading)
+                {
+                    <DropdownItem Disabled="true">Loading boards...</DropdownItem>
+                }
+                else if (HasErrors)
+                {
+                    <DropdownItem Disabled="true">Error loading boards</DropdownItem>
+                }
+                else if (BoardDTOs.Count == 0)
+                {
+                    <DropdownItem Disabled="true">No boards available</DropdownItem>
+                }
+                else
+                {
+                    @foreach (var board in BoardDTOs)
+                    {
+                        <DropdownItem @onclick=@(() => NavigateToBoard(board.ShortName)) Type="DropdownItemType.Link" Active="@(board.ShortName == BoardState.Value.CurrentBoard?.ShortName)">/ @board.ShortName / @(board.ShortName == BoardState.Value.CurrentBoard?.ShortName ? "currently viewing" : "")</DropdownItem>
+                    }
+                }
+            </DropdownMenu>
+        </Dropdown>
+    </div>
+    <!-- some image decorator-->
+    <div class="board-image">
+        <Image Src="images/temp_logo.png"
+               Alt="Modern Chan Splash Image"
+               Class="rounded" />
+    </div>
+
+    <!-- Board Name-->
+    <div class="board-name">
+        <h3>/@BoardState.Value.CurrentBoard?.ShortName/ @(string.IsNullOrEmpty(BoardState.Value.CurrentBoard?.Description) ? "" : " - " + BoardState.Value.CurrentBoard.Description)</h3>
+    </div>
+
+    <hr class="header-line-divider" />
+
+
+    <div class="new-thread-form">
+        <h3>[Start New Thread]</h3>
+    </div>
+
+    <hr class="mini-header-line-divider" />
+
+    <!-- Announcements -->
+    <div class="announcements-style">
+        <ul>
+            <li>Welcome to the new Modern Chan platform!</li>
+            <li>Please adhere to the community guidelines while posting.</li>
+            <li>Report any bugs or issues to the admin team.</li>
+        </ul>
+    </div>
+
+    <hr class="mini-header-line-divider" />
+    
+    <!-- Ad image -->
+    <div class="advertised-photo">
+        <Image Src="images/ad_placeholder.png"
+               Alt="Advertisement Placeholder"
+               Class="rounded" />
+    </div>
+
+    <hr class="header-line-divider" />
+
+    <div class="advertise-style">
+        <p><a href="/advertisehere">[Advertise on ModernChan]</a></p>
+    </div>
+
+    <hr class="header-line-divider" />
+</div>
+
+@code {
+    [Inject]
+    private IChanBoardHttpClient ChanBoardHttpClient { get; set; } = null!;
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject]
+    private IState<BoardState> BoardState { get; set; } = null!;
+    [Inject]
+    private IDispatcher Dispatcher { get; set; } = null!;
+
+    //[Parameter]
+    //public BoardDTO CurrentBoard { get; set; } = null!;
+
+    private List<BoardDTO> BoardDTOs { get; set; } = new List<BoardDTO>();
+    private bool Loading { get; set; } = true;
+    private bool HasErrors { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            BoardDTOs = await ChanBoardHttpClient.GetBoards();
+        }
+        catch (Exception)
+        {
+            HasErrors = true;
+            // Handle error (e.g., log it)
+        }
+        finally
+        {
+            Loading = false;
+        }
+
+        await base.OnInitializedAsync();
+    }
+
+    private void NavigateToBoard(string shortName)
+    {
+        var board = BoardDTOs.FirstOrDefault(b => b.ShortName.Equals(shortName, StringComparison.OrdinalIgnoreCase));
+        if (board != null) // Check if the board exists
+        {
+            Dispatcher.Dispatch(new SetCurrentBoard(board));
+            NavigationManager.NavigateTo($"/board/{board.ShortName}");
+        }
+        else
+        {
+            // Handle the case where the board was not found, if necessary
+        }
+    }
+}

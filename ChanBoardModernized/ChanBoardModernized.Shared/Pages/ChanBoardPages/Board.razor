@@ -1,8 +1,39 @@
 ﻿@page "/board/{ShortName}"
+@using ChanBoardModernized.Shared.Components
+@using ChanBoardModernized.Shared.Components.DTOs
+@using ChanBoardModernized.Shared.Components.Interfaces
+
+<BoardHeader/>
 
 <h3>Welcome to /@ShortName/</h3>
 
 @code {
+    [Inject]
+    private IChanBoardHttpClient ChanBoardHttpClient { get; set; } = null!;
+
     [Parameter]
     public string ShortName { get; set; } = string.Empty;
+
+    private List<BoardDTO> BoardDTOs { get; set; } = new List<BoardDTO>();
+    private BoardDTO? CurrentBoard;
+    private bool Loading { get; set; } = true;
+    private bool HasErrors { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            BoardDTOs = await ChanBoardHttpClient.GetBoards();
+            CurrentBoard = BoardDTOs.FirstOrDefault(b => b.ShortName.Equals(ShortName, StringComparison.OrdinalIgnoreCase)); // Added this line to ensure CurrentBoard is set correctly
+        }
+        catch (Exception)
+        {
+            HasErrors = true;
+            // Handle error (e.g., log it)
+        }
+        finally
+        {
+            Loading = false;
+        }
+    }
 }

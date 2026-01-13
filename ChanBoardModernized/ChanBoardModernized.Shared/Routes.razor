@@ -1,4 +1,6 @@
-﻿<Router AppAssembly="typeof(Layout.MainLayout).Assembly">
+﻿<Fluxor.Blazor.Web.StoreInitializer/>
+
+<Router AppAssembly="typeof(Layout.MainLayout).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
         <FocusOnNavigate RouteData="routeData" Selector="h1" />

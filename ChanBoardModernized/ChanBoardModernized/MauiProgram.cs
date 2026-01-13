@@ -3,7 +3,8 @@ using ChanBoardModernized.Shared.Components.Implementations;
 using ChanBoardModernized.Shared.Components.Interfaces;
 using ChanBoardModernized.Shared.Services;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
+using Fluxor;
+using ChanBoardModernized.Shared;
 
 namespace ChanBoardModernized
 {
@@ -47,7 +48,12 @@ namespace ChanBoardModernized
 
             builder.Services.AddSingleton<IChanBoardHttpClient, ChanBoardHttpClient>();
             builder.Services.AddMauiBlazorWebView();
+            
             builder.Services.AddBlazorBootstrap();
+            builder.Services.AddFluxor(options =>
+            {
+                options.ScanAssemblies(typeof(MauiProgram).Assembly, typeof(Shared.States.BoardState).Assembly);
+            });
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();

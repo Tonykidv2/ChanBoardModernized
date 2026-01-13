@@ -2,6 +2,7 @@ using ChanBoardModernized.Shared.Components.Implementations;
 using ChanBoardModernized.Shared.Components.Interfaces;
 using ChanBoardModernized.Shared.Services;
 using ChanBoardModernized.Web.Client.Services;
+using Fluxor;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -21,5 +22,9 @@ builder.Services.AddHttpClient("ChanAPIClient", client =>
 });
 builder.Services.AddSingleton<IChanBoardHttpClient, ChanBoardHttpClient>();
 builder.Services.AddBlazorBootstrap();
+builder.Services.AddFluxor(options =>
+{
+    options.ScanAssemblies(typeof(Program).Assembly, typeof(ChanBoardModernized.Shared.States.BoardState).Assembly);
+});
 
 await builder.Build().RunAsync();
