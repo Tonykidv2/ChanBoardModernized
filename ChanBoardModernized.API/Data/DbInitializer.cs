@@ -15,7 +15,8 @@ public static class DbInitializer
             var defaultUsers = DefaultUsers(passwordHasher);
             foreach (var user in defaultUsers)
             {
-                context.Users.Add(user);
+                if(!await context.Users.AnyAsync(u => u.Username == user.Username))
+                    context.Users.Add(user);
             }
         }
 
@@ -29,6 +30,33 @@ public static class DbInitializer
                 Description = "General discussion board"
             };
             context.Boards.Add(defaultBoard);
+
+            var techBoard = new Entities.Board
+            {
+                Id = Guid.NewGuid(),
+                Name = "Technology",
+                ShortName = "tech",
+                Description = "Technology discussion board"
+            };
+            context.Boards.Add(techBoard);
+
+            var animeBoard = new Entities.Board
+            {
+                Id = Guid.NewGuid(),
+                Name = "Anime",
+                ShortName = "a",
+                Description = "Anime discussion board"
+            };
+            context.Boards.Add(animeBoard);
+
+            var randomBoard = new Entities.Board
+            {
+                Id = Guid.NewGuid(),
+                Name = "Random",
+                ShortName = "b",
+                Description = "Random discussion board"
+            }; 
+            context.Boards.Add(randomBoard);
         }
 
         await context.SaveChangesAsync();
@@ -62,5 +90,7 @@ public static class DbInitializer
 
         return new List<User> { admin, user, moderator };
     }
+
+    
 }
 
