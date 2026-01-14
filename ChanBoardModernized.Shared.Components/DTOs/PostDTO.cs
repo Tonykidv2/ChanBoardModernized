@@ -8,7 +8,8 @@ namespace ChanBoardModernized.Shared.Components.DTOs;
 
 public class CommentDTO
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
+    public Guid ThreadId { get; set; }
     public string Content { get; set; }
     public DateTime CreatedAt { get; set; }
     public int PostDigits { get; set; }

@@ -1,0 +1,18 @@
+.search-container {
+    display: flex;
+    align-items: center;
+    padding: .25rem;
+    width: fit-content;
+}
+
+.thread-container {
+
+}
+
+.search-input-style {
+    width: fit-content;
+}
+
+.line-divider {
+    margin: auto;
+}

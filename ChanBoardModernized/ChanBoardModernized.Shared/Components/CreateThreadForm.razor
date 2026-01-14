@@ -1,0 +1,85 @@
+﻿@using ChanBoardModernized.Shared.Components.DTOs
+@using ChanBoardModernized.Shared.Components.Interfaces
+<Toasts class="p-3" Messages="messages" AutoHide="true" StackLength="3" Placement="ToastsPlacement.TopRight" />
+
+
+<EditForm Model="@ThreadModel" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="row align-items-center mb-2">
+        <div class="col-auto create-thread-label">
+            <label for="author" class="form-label mb-0">Author:</label>
+        </div>
+        <div class="col">
+            <TextInput id="author" class="form-control" @bind-Value="ThreadModel.Author" Placeholder="Anonymous"/>
+        </div>
+    </div>
+    <div class="row align-items-center mb-2">
+        <div class="col-auto create-thread-label">
+            <label for="title" class="form-label mb-0">Title:</label>
+        </div>
+        <div class="col">
+            <TextInput Id="title" class="form-control" @bind-Value="ThreadModel.Title" />
+        </div>
+    </div>
+    <div class="row align-center-baseline mb-2">
+        <div class="col-auto create-thread-label">
+            <label for="content" class="form-label mb-0">Content:</label>
+        </div>
+        <div class="col">
+            <TextAreaInput Id="content" class="form-control" @bind-Value="ThreadModel.Content" />
+        </div>
+        @* <div class="col-12">
+            <ValidationMessage For="@(() => ThreadModel.Content)" />
+        </div> *@
+    </div>
+    <Button Type="ButtonType.Submit" Color="ButtonColor.Primary" Class="float-end">Post</Button>
+</EditForm>
+
+
+@code {
+    [Inject]
+    private IChanBoardHttpClient ChanBoardHttpClient { get; set; } = null!;
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = null!;
+    [Parameter]
+    public BoardDTO CurrentBoard { get; set; } = null!;
+
+    private ThreadDTO ThreadModel { get; set; } = new ThreadDTO();
+    private List<ToastMessage> messages = new List<ToastMessage>();
+
+    private async Task HandleValidSubmit()
+    {
+        ThreadModel.BoardId = CurrentBoard.Id;
+        var response = await ChanBoardHttpClient.CreateThread(ThreadModel);
+        if (!string.IsNullOrEmpty(response.ErrorMessage))
+        {
+            // Handle error (e.g., show a message to the user)
+            messages.Add(new ToastMessage
+            {
+                Title = "Error",
+                Message = $"Failed to create thread: {response.ErrorMessage}",
+                Type = ToastType.Danger,
+                HelpText = $"{DateTime.Now}"
+            });
+        }
+        else
+        {
+            // Optionally clear the form or provide feedback
+            ThreadModel = new ThreadDTO();
+            messages.Add(new ToastMessage
+            {
+                Title = "Success",
+                //Message = "Thread created successfully.",
+                Content = @<div>Thread Posted! <button class="btn btn-sm btn-primary" @onclick="@(() => NavigateToThread(response.Thread!.Id))">Go to new Board</button></div>,
+                Type = ToastType.Success,
+                HelpText = $"{DateTime.Now}"
+            });
+        }
+    }
+
+    private void NavigateToThread(Guid ThreadId)
+    {
+        NavigationManager.NavigateTo($"/thread/{ThreadId}");
+    }
+}

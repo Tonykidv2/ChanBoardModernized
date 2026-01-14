@@ -96,8 +96,17 @@
     vertical-align: top;
 }
 
-.post-container,
+
 .op-container {
+    min-height: 100px;
+    padding: .5rem;
+    width: 100%;
+    max-width: 900px;
+    box-sizing: border-box;
+    display: block;
+}
+
+.post-container{
     background-color: darksalmon;
     min-height: 100px;
     padding: .5rem;

@@ -20,7 +20,7 @@ public static class DbInitializer
             }
         }
 
-        if(!await context.Boards.AnyAsync())
+        if (!await context.Boards.AnyAsync())
         {
             var defaultBoard = new Entities.Board
             {

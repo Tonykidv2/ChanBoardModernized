@@ -1,4 +1,5 @@
 ﻿using ChanBoardModernized.Shared.Components.DTOs;
+using ChanBoardModernized.Shared.Components.DTOsl;
 using ChanBoardModernized.Shared.Components.Interfaces;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -14,6 +15,16 @@ public class ChanBoardHttpClient : IChanBoardHttpClient
     {
         _httpClient = factory.CreateClient("ChanAPIClient");
         _tokenStore = tokenStore;
+    }
+    
+    private async Task AddAuthorizationHeaderAsync()
+    {
+        var token = await _tokenStore.GetTokenAsync();
+        if (!string.IsNullOrEmpty(token))
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
     }
 
     public async Task<List<UserDTO>> GetAllUsersAsync()
@@ -71,16 +82,6 @@ public class ChanBoardHttpClient : IChanBoardHttpClient
         throw new NotImplementedException();
     }
 
-    private async Task AddAuthorizationHeaderAsync()
-    {
-        var token = await _tokenStore.GetTokenAsync();
-        if (!string.IsNullOrEmpty(token))
-        {
-            _httpClient.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-        }
-    }
-
     public async Task<List<BoardDTO>> GetBoards()
     {
         var result = new List<BoardDTO>();
@@ -118,5 +119,45 @@ public class ChanBoardHttpClient : IChanBoardHttpClient
             return new BoardResponseDTO(null, errorMsg);
         }
 
+    }
+
+    public async Task<List<ThreadDTO>> GetPreviewThreads(string boardShortName, int pageNumber, int pageSize)
+    {
+       await AddAuthorizationHeaderAsync();
+        var result = await _httpClient.GetFromJsonAsync<List<ThreadDTO>>($"api/boards/{boardShortName}/threads/{pageNumber}/{pageSize}")
+            ?? new List<ThreadDTO>();
+        return result;
+    }
+
+    public async Task<ThreadResponseDTO> CreateThread(ThreadDTO threadDto)
+    {
+        await AddAuthorizationHeaderAsync();
+        var response = await _httpClient.PostAsJsonAsync("api/boards/threads", threadDto);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var createdThread = await response.Content.ReadFromJsonAsync<ThreadResponseDTO>();
+            if (createdThread != null)
+            {
+                return createdThread;
+            }
+            return new ThreadResponseDTO(null, "Invalid response from server");
+        }
+        var errorMessage = await response.Content.ReadAsStringAsync();
+        return new ThreadResponseDTO(null, errorMessage);
+    }
+
+    public async Task<CommentResponseDTO> CreateComment(CommentDTO commentDto)
+    {
+        await AddAuthorizationHeaderAsync();
+        throw new NotImplementedException();
+    }
+
+    public async Task<List<CommentDTO>> GetCommentsForThread(Guid threadId)
+    {
+        await AddAuthorizationHeaderAsync();
+        var result = await _httpClient.GetFromJsonAsync<List<CommentDTO>>($"api/threads/{threadId}/comments")
+            ?? new List<CommentDTO>();
+        return result;
     }
 }

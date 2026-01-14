@@ -1,5 +1,5 @@
-﻿@* @page "/thread/{ThreadId:guid}" *@
-@page "/thread"
+﻿@page "/thread/{ThreadId:guid}"
+
 
 @using ChanBoardModernized.Shared.Components
 @using ChanBoardModernized.Shared.Components.DTOs
@@ -7,11 +7,11 @@
 
 
 <div>
-    @foreach (var comment in commentDTOs)
+    @foreach (var comment in Comments)
     {
         <CommentDisplay CommentDTO="comment" 
-            IsFirstComment="@(comment == commentDTOs.First())" 
-            IsOP="@(comment == commentDTOs.First())" />
+            IsFirstComment="@(comment == Comments.First())" 
+            IsOP="@(comment == Comments.First())" />
         <br/>
     }
 </div>
@@ -24,19 +24,23 @@
 
     [Parameter]
     public Guid ThreadId { get; set; }
+    [Parameter]
+    public List<CommentDTO> Comments { get; set; } = new List<CommentDTO>();
 
-    public List<CommentDTO> commentDTOs { get; set; } = new List<CommentDTO>();
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        //Seed commentDTO
-        SeedCommentDTOs();
-        base.OnInitialized();
+        //Navigated from other page
+        if (ThreadId != Guid.Empty)
+        {
+            //Get comments for the thread from API
+            Comments = await ChanBoardHttpClient.GetCommentsForThread(ThreadId);
+        }
+        await base.OnInitializedAsync();
     }
 
     private void SeedCommentDTOs()
     {
-        commentDTOs = new List<CommentDTO>()
+        Comments = new List<CommentDTO>()
         {
             new CommentDTO() { PostDigits = 1234567890, Title = "First Post", Author = "User1", Content = "This is the first post in the thread.", CreatedAt = DateTime.UtcNow.AddHours(-2), PhotoID = Guid.NewGuid() },
             new CommentDTO() { PostDigits = 1234567891, Title = "", Author = "User2", Content = "This is a reply to the first post.", CreatedAt = DateTime.UtcNow.AddHours(-1), PhotoID = Guid.Empty },

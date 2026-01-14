@@ -1,6 +1,8 @@
 ﻿using ChanBoardModernized.API.Data;
+using ChanBoardModernized.API.Data.Entities;
 using ChanBoardModernized.Shared.Components;
 using ChanBoardModernized.Shared.Components.DTOs;
+using ChanBoardModernized.Shared.Components.DTOsl;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChanBoardModernized.API.EndPointsl;
@@ -75,7 +77,7 @@ public static class ChanBoardEndPoints
         });
 
         //Get Threads and recent comments for each thread for a board and pagination
-        app.MapGet("/api/boards/{shortName}/threads", async (string shortName, int pageNumber, int pageSize, ChanContext dbContext) =>
+        app.MapGet("/api/boards/{shortName}/threads/{pageNumber}/{pageSize}", async (string shortName, int pageNumber, int pageSize, ChanContext dbContext) =>
         {
             var board = await dbContext.Boards
             .AsNoTracking()
@@ -89,24 +91,96 @@ public static class ChanBoardEndPoints
             .Where(t => t.BoardId == board.Id)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(t => new
+            .Select(t => new ThreadDTO()
             {
-                t.Id,
-                t.Title,
-                t.CreatedAt,
-                RecentComments = dbContext.Comments
+                Id = t.Id,
+                Title = t.Title,
+                CreatedDate = t.CreatedAt,
+                Comments = dbContext.Comments
                     .AsNoTracking()
                     .Where(c => c.ThreadId == t.Id)
                     .OrderByDescending(c => c.CreatedAt)
                     .Take(2)
-                    .Select(c => new
+                    .Select(c => new CommentDTO()
                     {
-                        c.Id,
-                        c.TextContent,
-                        c.CreatedAt
+                        Id = c.Id,
+                        Content = c.TextContent,
+                        CreatedAt = c.CreatedAt
                     }).ToList()
             }).ToListAsync();
             return Results.Ok(threads);
+        });
+
+        //Create thread
+        app.MapPost("api/boards/threads", async (ThreadDTO threadDto, ChanContext dbContext) =>
+        {
+            var board = await dbContext.Boards
+            .FirstOrDefaultAsync(b => b.Id == threadDto.BoardId);
+            if (board == null)
+            {
+                return Results.NotFound();
+            }
+            var thread = new Data.Entities.CommentThread
+            {
+                Id = Guid.NewGuid(),
+                BoardId = board.Id,
+                Title = threadDto.Title,
+                CreatedAt = DateTime.UtcNow,
+                Content = threadDto.Content
+            };
+            var comment = new Comment
+            {
+                Id = Guid.NewGuid(),
+                TextContent = threadDto.Content,
+                CreatedAt = DateTime.UtcNow,
+                ThreadId = thread.Id,
+            };
+            dbContext.CommentThreads.Add(thread);
+            dbContext.Comments.Add(comment);
+            await dbContext.SaveChangesAsync();
+            threadDto.Id = thread.Id;
+            var result = new ThreadResponseDTO(threadDto, string.Empty);
+            return Results.Ok(result);
+        });//.RequireAuthorization(policy =>
+           //policy.RequireRole(UserRole.User.ToString(), UserRole.Admin.ToString()));)
+           //Create Comment
+
+        //Create comment
+        app.MapPost("api/comment", async (CommentDTO commentDto, ChanContext dbContext) =>
+        {
+            var comment = new Comment
+            {
+                Id = Guid.NewGuid(),
+                TextContent = commentDto.Content,
+                CreatedAt = DateTime.UtcNow,
+                ThreadId = commentDto.ThreadId,
+            };
+            dbContext.Comments.Add(comment);
+            await dbContext.SaveChangesAsync();
+
+            commentDto.Id = comment.Id;
+
+            var result = new CommentResponseDTO(commentDto, string.Empty);
+            return Results.Ok(result);
+        });
+
+        //Get comments for a thread
+        app.MapGet("/api/threads/{threadId}/comments", async (Guid threadId, ChanContext dbContext) =>
+        {
+            var comments = await dbContext.Comments
+                .AsNoTracking()
+                .Where(c => c.ThreadId == threadId)
+                .OrderBy(c => c.CreatedAt)
+                .Select(c => new CommentDTO
+                {
+                    Id = c.Id,
+                    Content = c.TextContent,
+                    CreatedAt = c.CreatedAt,
+                    ThreadId = c.ThreadId
+                })
+                .ToListAsync();
+
+            return Results.Ok(comments);
         });
 
         return app;
