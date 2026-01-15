@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using MongoDB.Bson.Serialization.Attributes;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ChanBoardModernized.API.Data.Entities;
@@ -6,6 +7,8 @@ namespace ChanBoardModernized.API.Data.Entities;
 public class Comment
 {
     [Key]
+    [BsonId]
+    [BsonRepresentation(MongoDB.Bson.BsonType.String)]
     public Guid Id { get; set; }
     [MaxLength(500)]
     public string TextContent { get; set; } = null!;
@@ -15,12 +18,12 @@ public class Comment
     public Guid UserId { get; set; }
     public Guid ThreadId { get; set; }
 
-    [ForeignKey(nameof(CommentPhotoId))]
+    
     public virtual Photo CommentPhoto { get; set; } = null!;
 
     [ForeignKey(nameof(UserId))]
     public virtual User User { get; set; } = null!;
 
     [ForeignKey(nameof(ThreadId))]
-    public virtual CommentThread Thread { get; set; } = null!;
+    public virtual Thread Thread { get; set; } = null!;
 }

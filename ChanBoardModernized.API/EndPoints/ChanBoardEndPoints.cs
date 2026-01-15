@@ -1,5 +1,6 @@
 ﻿using ChanBoardModernized.API.Data;
 using ChanBoardModernized.API.Data.Entities;
+using ChanBoardModernized.API.Services;
 using ChanBoardModernized.Shared.Components;
 using ChanBoardModernized.Shared.Components.DTOs;
 using ChanBoardModernized.Shared.Components.DTOsl;
@@ -86,7 +87,7 @@ public static class ChanBoardEndPoints
             {
                 return Results.NotFound();
             }
-            var threads = await dbContext.CommentThreads
+            var threads = await dbContext.Threads
             .AsNoTracking()
             .Where(t => t.BoardId == board.Id)
             .Skip((pageNumber - 1) * pageSize)
@@ -94,48 +95,61 @@ public static class ChanBoardEndPoints
             .Select(t => new ThreadDTO()
             {
                 Id = t.Id,
-                Title = t.Title,
+                Title = t.Title ?? "",
                 CreatedDate = t.CreatedAt,
-                Comments = dbContext.Comments
-                    .AsNoTracking()
-                    .Where(c => c.ThreadId == t.Id)
-                    .OrderByDescending(c => c.CreatedAt)
-                    .Take(2)
-                    .Select(c => new CommentDTO()
-                    {
-                        Id = c.Id,
-                        Content = c.TextContent,
-                        CreatedAt = c.CreatedAt
-                    }).ToList()
+                Comments = new List<CommentDTO>()
             }).ToListAsync();
+
+            foreach (var thread in threads)
+            {
+                var recentComments = await dbContext.Comments
+                .AsNoTracking()
+                .Where(c => c.ThreadId == thread.Id)
+                .OrderByDescending(c => c.CreatedAt)
+                .Take(2)
+                .Select(c => new CommentDTO()
+                {
+                    Id = c.Id,
+                    Content = c.TextContent,
+                    CreatedAt = c.CreatedAt,
+                    ThreadId = c.ThreadId,
+                    PostDigits = c.PostDigits
+                }).ToListAsync();
+
+                thread.Comments = recentComments.OrderBy(c => c.CreatedAt).ToList();
+            }
             return Results.Ok(threads);
         });
 
         //Create thread
-        app.MapPost("api/boards/threads", async (ThreadDTO threadDto, ChanContext dbContext) =>
+        app.MapPost("api/boards/threads", async (ThreadDTO threadDto, ChanContext dbContext, CommentCounterService commentCounterService) =>
         {
+
             var board = await dbContext.Boards
             .FirstOrDefaultAsync(b => b.Id == threadDto.BoardId);
             if (board == null)
             {
                 return Results.NotFound();
             }
-            var thread = new Data.Entities.CommentThread
+            var thread = new Data.Entities.Thread
             {
                 Id = Guid.NewGuid(),
                 BoardId = board.Id,
                 Title = threadDto.Title,
                 CreatedAt = DateTime.UtcNow,
-                Content = threadDto.Content
             };
+
+            //When MongoDb has been initalized
+            var Nextdigit = await commentCounterService.GetNextCounterValueAsync(board.Id);
             var comment = new Comment
             {
                 Id = Guid.NewGuid(),
                 TextContent = threadDto.Content,
                 CreatedAt = DateTime.UtcNow,
                 ThreadId = thread.Id,
+                PostDigits = Nextdigit
             };
-            dbContext.CommentThreads.Add(thread);
+            dbContext.Threads.Add(thread);
             dbContext.Comments.Add(comment);
             await dbContext.SaveChangesAsync();
             threadDto.Id = thread.Id;
@@ -176,7 +190,8 @@ public static class ChanBoardEndPoints
                     Id = c.Id,
                     Content = c.TextContent,
                     CreatedAt = c.CreatedAt,
-                    ThreadId = c.ThreadId
+                    ThreadId = c.ThreadId,
+                    PostDigits = c.PostDigits
                 })
                 .ToListAsync();
 

@@ -10,7 +10,7 @@ public static class DbInitializer
         ChanContext context,
         IPasswordHasher<User> passwordHasher)
     {
-        if (!await context.Users.AnyAsync(u => u.Username == "admin"))
+        if (!await context.Users.AnyAsync())
         {
             var defaultUsers = DefaultUsers(passwordHasher);
             foreach (var user in defaultUsers)

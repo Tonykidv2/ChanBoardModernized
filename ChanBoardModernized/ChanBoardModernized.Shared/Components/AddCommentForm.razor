@@ -1,0 +1,51 @@
+﻿@using ChanBoardModernized.Shared.Components.DTOs
+@using ChanBoardModernized.Shared.Components.Interfaces
+<Toasts class="p-3" Messages="messages" AutoHide="true" StackLength="3" Placement="ToastsPlacement.TopRight" />
+
+<EditForm Model="@CommentModel" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="row align-items-center mb-2">
+        <div class="col-auto create-thread-label">
+            <label for="author" class="form-label mb-0">Name:</label>
+        </div>
+        <div class="col">
+            <TextInput id="author" class="form-control" @bind-Value="CommentModel.Author" Placeholder="Anonymous" />
+        </div>
+    </div>
+    @* <div class="row align-items-center mb-2">
+        <div class="col-auto create-thread-label">
+            <label for="title" class="form-label mb-0">Title:</label>
+        </div>
+        <div class="col">
+            <TextInput Id="title" class="form-control" @bind-Value="CommentModel.Title" />
+        </div>
+    </div> *@
+    <div class="row align-center-baseline mb-2">
+        <div class="col-auto create-thread-label">
+            <label for="content" class="form-label mb-0">Content:</label>
+        </div>
+        <div class="col">
+            <TextAreaInput Id="content" class="form-control" @bind-Value="CommentModel.Content" />
+        </div>
+    </div>
+    <Button Type="ButtonType.Submit" Color="ButtonColor.Primary" Class="float-end">Post</Button>
+</EditForm>
+
+
+@code {
+    [Inject]
+    private IChanBoardHttpClient ChanBoardHttpClient { get; set; } = null!;
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = null!;
+    [Parameter]
+    public ThreadDTO CurrentBoard { get; set; } = null!;
+
+    private CommentDTO CommentModel { get; set; } = new CommentDTO();
+    private List<ToastMessage> messages = new List<ToastMessage>();
+
+    private async Task HandleValidSubmit()
+    {
+        
+    }
+}

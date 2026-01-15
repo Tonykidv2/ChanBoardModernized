@@ -18,8 +18,4 @@ public class Photo
 
     public DateTime UploadedAt { get; set; }
     public Guid UserId { get; set; }
-
-    // Navigation property
-    [ForeignKey(nameof(UserId))]
-    public virtual User User { get; set; } = null!;
 }

@@ -12,10 +12,11 @@ public class ChanContext : DbContext
     }
 
     public DbSet<Board> Boards { get; set; } = null!;
-    public DbSet<CommentThread> CommentThreads { get; set; } = null!;
+    public DbSet<Entities.Thread> Threads { get; set; } = null!;
     public DbSet<Comment> Comments { get; set; } = null!;
     public DbSet<Photo> Photos { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
+    public DbSet<CommentCounter> CommentCounters { get; set; } = null!;
     public IPasswordHasher<User> PasswordHasher { get; }
 
     override protected void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

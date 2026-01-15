@@ -28,8 +28,14 @@
         <!-- Top Level details -->
         <div class="top-level-details">
             <CheckboxInput @bind-Value="IsSelected"/>
-            @if (IsFirstComment && IsOP)
+            @if (IsFirstComment)
             {
+                if(!string.IsNullOrWhiteSpace(ThreadTitle))
+                {
+                    <span class="thread-title">
+                        @ThreadTitle
+                    </span>
+                }
                 <span class="thread-title">
                     @CommentDTO.Title 
                 </span>
@@ -48,7 +54,7 @@
                 @CommentDTO.CreatedAt.ToLocalTime().ToString("MM/dd/yy(ddd)HH:mm:ss", CultureInfo.InvariantCulture)
             </span>
             <span>
-                    No.@CommentDTO.PostDigits 
+                    No.@CommentDTO.PostDigits.ToString("D9")
             </span>
             <Icon Name="IconName.CaretRightFill"/>
         </div>
@@ -82,13 +88,14 @@
 @code {
     [Parameter]
     public CommentDTO CommentDTO { get; set; } = null!;
-    //public CommentDTO ChildCommentDto { get; set; } = null!;
     [Parameter]
     public bool IsFirstComment { get; set; }
     [Parameter]
     public bool IsOP { get; set; }
     [Parameter]
     public bool showTestImage { get; set; } = false;
+    [Parameter]
+    public string ThreadTitle { get; set; } = string.Empty;
 
     private bool IsSelected = false;
 

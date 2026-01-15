@@ -30,7 +30,7 @@
     protected override async Task OnInitializedAsync()
     {
         //Navigated from other page
-        if (ThreadId != Guid.Empty)
+        if (ThreadId != Guid.Empty && !Comments.Any())
         {
             //Get comments for the thread from API
             Comments = await ChanBoardHttpClient.GetCommentsForThread(ThreadId);

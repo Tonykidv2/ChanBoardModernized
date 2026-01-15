@@ -14,7 +14,7 @@ public class ThreadDTO
     public string Author { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     [Required]
-    public string Content { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty; //Used for the initial post content
     public DateTime CreatedDate { get; set; }
     public List<string> Tags { get; set; } = new List<string>();
     public List<CommentDTO> Comments { get; set; } = new List<CommentDTO>();

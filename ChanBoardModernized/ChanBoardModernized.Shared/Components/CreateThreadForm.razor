@@ -8,7 +8,7 @@
     <ValidationSummary />
     <div class="row align-items-center mb-2">
         <div class="col-auto create-thread-label">
-            <label for="author" class="form-label mb-0">Author:</label>
+            <label for="author" class="form-label mb-0">Name:</label>
         </div>
         <div class="col">
             <TextInput id="author" class="form-control" @bind-Value="ThreadModel.Author" Placeholder="Anonymous"/>
@@ -16,7 +16,7 @@
     </div>
     <div class="row align-items-center mb-2">
         <div class="col-auto create-thread-label">
-            <label for="title" class="form-label mb-0">Title:</label>
+            <label for="title" class="form-label mb-0">Subject:</label>
         </div>
         <div class="col">
             <TextInput Id="title" class="form-control" @bind-Value="ThreadModel.Title" />
@@ -24,7 +24,7 @@
     </div>
     <div class="row align-center-baseline mb-2">
         <div class="col-auto create-thread-label">
-            <label for="content" class="form-label mb-0">Content:</label>
+            <label for="content" class="form-label mb-0">Comment:</label>
         </div>
         <div class="col">
             <TextAreaInput Id="content" class="form-control" @bind-Value="ThreadModel.Content" />
@@ -54,7 +54,6 @@
         var response = await ChanBoardHttpClient.CreateThread(ThreadModel);
         if (!string.IsNullOrEmpty(response.ErrorMessage))
         {
-            // Handle error (e.g., show a message to the user)
             messages.Add(new ToastMessage
             {
                 Title = "Error",
@@ -65,7 +64,7 @@
         }
         else
         {
-            // Optionally clear the form or provide feedback
+            // clear the form or provide feedback
             ThreadModel = new ThreadDTO();
             messages.Add(new ToastMessage
             {

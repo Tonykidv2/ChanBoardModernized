@@ -47,17 +47,32 @@
 
     <hr class="header-line-divider" />
 
-
-    <div class="new-thread-form">
-        @if (ShowNewThreadForm)
-        {
-            <CreateThreadForm CurrentBoard="@BoardState.Value.CurrentBoard"/>
-        }
-        else
-        {
-            <h3>[<a @onclick="() => ShowNewThreadForm = true">Start New Thread</a>]</h3>
-        }
-    </div>
+    @if(IsOnBoardPage)
+    {
+        <div class="new-thread-form">
+            @if (ShowForm)
+            {
+                <CreateThreadForm CurrentBoard="@BoardState.Value.CurrentBoard"/>
+            }
+            else
+            {
+                <h3>[<a @onclick="() => ShowForm = true">Start New Thread</a>]</h3>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="new-thread-form">
+            @if (ShowForm)
+            {
+                <CreateThreadForm CurrentBoard="@BoardState.Value.CurrentBoard" />
+            }
+            else
+            {
+                <h3>[<a @onclick="() => ShowForm = true">Post a Reply</a>]</h3>
+            }
+        </div>
+    }
 
     <hr class="mini-header-line-divider" />
 
@@ -97,11 +112,13 @@
     private IState<BoardState> BoardState { get; set; } = null!;
     [Inject]
     private IDispatcher Dispatcher { get; set; } = null!;
+    [Parameter]
+    public bool IsOnBoardPage { get; set; } = true;
 
     private List<BoardDTO> BoardDTOs { get; set; } = new List<BoardDTO>();
     private bool Loading { get; set; } = true;
     private bool HasErrors { get; set; } = false;
-    private bool ShowNewThreadForm { get; set; } = false;
+    private bool ShowForm { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {

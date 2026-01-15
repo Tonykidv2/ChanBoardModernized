@@ -12,12 +12,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddTransient<CommentCounterService>();
 builder.Services.AddTransient<AuthService>();
 
 builder.Services.AddDbContext<ChanContext>(options =>
 {
-    //options.UseSqlServer(builder.Configuration.GetConnectionString("ChanBoardContext") ?? throw new InvalidOperationException("Connection string 'ChanBoardContext' not found.")));
-    options.UseInMemoryDatabase("ChanBoardInMemoryDB");
+    var ctString = builder.Configuration.GetConnectionString("ChanBoardMongoDB") ?? throw new InvalidOperationException("Connection string 'ChanBoardMongoDB' not found.");
+    var dbName = builder.Configuration.GetValue<string>("DatabaseName") ?? throw new InvalidOperationException("Database name not configured.");
+    options.UseMongoDB(ctString, dbName);
+    //options.UseInMemoryDatabase("ChanBoardInMemoryDB");
 });
 
 builder.Services.AddAuthentication(options =>
