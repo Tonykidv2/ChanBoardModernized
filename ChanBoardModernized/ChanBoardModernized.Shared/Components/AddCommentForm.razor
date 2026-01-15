@@ -39,13 +39,29 @@
     [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
     [Parameter]
-    public ThreadDTO CurrentBoard { get; set; } = null!;
+    public ThreadDTO CurrentThread { get; set; } = null!;
 
     private CommentDTO CommentModel { get; set; } = new CommentDTO();
     private List<ToastMessage> messages = new List<ToastMessage>();
 
     private async Task HandleValidSubmit()
     {
-        
+        CommentModel.ThreadId = CurrentThread.Id;
+
+        var response = await ChanBoardHttpClient.CreateComment(CommentModel);
+        if (!string.IsNullOrEmpty(response.ErrorMessage))
+        {
+            messages.Add(new ToastMessage
+            {
+                Title = "Error",
+                Message = $"Failed to create comment: {response.ErrorMessage}",
+                Type = ToastType.Danger,
+                HelpText = "Please try again later."
+            });
+        }
+        else
+        {
+            //NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+        }
     }
 }

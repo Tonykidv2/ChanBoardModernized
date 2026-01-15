@@ -150,7 +150,20 @@ public class ChanBoardHttpClient : IChanBoardHttpClient
     public async Task<CommentResponseDTO> CreateComment(CommentDTO commentDto)
     {
         await AddAuthorizationHeaderAsync();
-        throw new NotImplementedException();
+
+        var response = await _httpClient.PostAsJsonAsync("api/comment", commentDto);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var createdComment = await response.Content.ReadFromJsonAsync<CommentResponseDTO>();
+            if(createdComment != null)
+            {
+                return createdComment;
+            }
+        }
+
+        var errorMessage = await response.Content.ReadAsStringAsync();
+        return new CommentResponseDTO(null, errorMessage);
     }
 
     public async Task<List<CommentDTO>> GetCommentsForThread(Guid threadId)

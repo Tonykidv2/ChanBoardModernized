@@ -65,7 +65,7 @@
         <div class="new-thread-form">
             @if (ShowForm)
             {
-                <CreateThreadForm CurrentBoard="@BoardState.Value.CurrentBoard" />
+                <AddCommentForm CurrentThread="@BoardState.Value.CurrentBoard" />
             }
             else
             {
