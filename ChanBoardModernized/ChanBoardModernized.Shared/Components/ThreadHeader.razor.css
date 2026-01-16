@@ -1,0 +1,52 @@
+.header-chan {
+    align-content: center;
+}
+
+.dropdown-style {
+    display: flex;
+    margin-left: 10px;
+    justify-content: center;
+}
+
+.board-image {
+    align-content: center;
+    margin: auto;
+    width: 30vw;
+}
+
+.board-name {
+    margin: auto;
+    justify-items: center;
+    color: red;
+}
+
+.new-comment-form {
+    justify-items: center;
+}
+
+.announcements-style {
+    margin: auto;
+    justify-items: center;
+}
+
+.advertise-style {
+    display: flex;
+    justify-content: center;
+    margin: auto;
+    padding: .25rem;
+}
+
+.header-line-divider {
+    margin: auto;
+}
+
+.mini-header-line-divider {
+    margin: auto;
+    width: 50vw;
+    justify-items: center;
+}
+
+.advertised-photo {
+    margin: auto;
+    justify-self: center;
+}

@@ -38,15 +38,17 @@
     private IChanBoardHttpClient ChanBoardHttpClient { get; set; } = null!;
     [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject]
+    private IActionSubscriber ActionSubscriber { get; set; } = null!;
     [Parameter]
-    public ThreadDTO CurrentThread { get; set; } = null!;
+    public Guid CurrentThreadId { get; set; } = Guid.Empty;
 
     private CommentDTO CommentModel { get; set; } = new CommentDTO();
     private List<ToastMessage> messages = new List<ToastMessage>();
 
     private async Task HandleValidSubmit()
     {
-        CommentModel.ThreadId = CurrentThread.Id;
+        CommentModel.ThreadId = CurrentThreadId;
 
         var response = await ChanBoardHttpClient.CreateComment(CommentModel);
         if (!string.IsNullOrEmpty(response.ErrorMessage))
@@ -62,6 +64,13 @@
         else
         {
             //NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+            messages.Add(new ToastMessage
+            {
+                Title = "Success",
+                Message = "Comment created successfully!",
+                Type = ToastType.Success,
+                HelpText = ""
+            });
         }
     }
 }

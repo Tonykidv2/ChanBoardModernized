@@ -113,11 +113,14 @@ public static class ChanBoardEndPoints
                     Content = c.TextContent,
                     CreatedAt = c.CreatedAt,
                     ThreadId = c.ThreadId,
-                    PostDigits = c.PostDigits
-                }).ToListAsync();
+                    PostDigits = c.PostDigits,
+                    Author = c.DisplayAuthor
 
+                }).ToListAsync();
+                recentComments[0].Title = thread.Title;
                 thread.Comments = recentComments.OrderBy(c => c.CreatedAt).ToList();
             }
+
             return Results.Ok(threads);
         });
 
@@ -147,7 +150,8 @@ public static class ChanBoardEndPoints
                 TextContent = threadDto.Content,
                 CreatedAt = DateTime.UtcNow,
                 ThreadId = thread.Id,
-                PostDigits = Nextdigit
+                PostDigits = Nextdigit,
+                DisplayAuthor = threadDto.Author
             };
             dbContext.Threads.Add(thread);
             dbContext.Comments.Add(comment);
@@ -160,7 +164,7 @@ public static class ChanBoardEndPoints
            //Create Comment
 
         //Create comment
-        app.MapPost("api/comment", async (CommentDTO commentDto, ChanContext dbContext) =>
+        app.MapPost("api/comment", async (CommentDTO commentDto, ChanContext dbContext, CommentCounterService commentCounterService) =>
         {
             var comment = new Comment
             {
@@ -168,7 +172,11 @@ public static class ChanBoardEndPoints
                 TextContent = commentDto.Content,
                 CreatedAt = DateTime.UtcNow,
                 ThreadId = commentDto.ThreadId,
+                DisplayAuthor = commentDto.Author
             };
+            var Nextdigit = await commentCounterService.GetNextCounterValueAsync(comment.ThreadId);
+            comment.PostDigits = Nextdigit;
+            
             dbContext.Comments.Add(comment);
             await dbContext.SaveChangesAsync();
 
@@ -181,6 +189,10 @@ public static class ChanBoardEndPoints
         //Get comments for a thread
         app.MapGet("/api/threads/{threadId}/comments", async (Guid threadId, ChanContext dbContext) =>
         {
+            var thread = await dbContext.Threads
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == threadId);
+
             var comments = await dbContext.Comments
                 .AsNoTracking()
                 .Where(c => c.ThreadId == threadId)
@@ -191,9 +203,15 @@ public static class ChanBoardEndPoints
                     Content = c.TextContent,
                     CreatedAt = c.CreatedAt,
                     ThreadId = c.ThreadId,
-                    PostDigits = c.PostDigits
+                    PostDigits = c.PostDigits,
+                    Author = c.DisplayAuthor
                 })
                 .ToListAsync();
+
+            if (comments.Any())
+            {
+                comments[0].Title = thread?.Title ?? "";
+            }
 
             return Results.Ok(comments);
         });

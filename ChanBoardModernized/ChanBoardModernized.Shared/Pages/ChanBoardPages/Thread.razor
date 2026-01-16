@@ -1,11 +1,13 @@
 ﻿@page "/thread/{ThreadId:guid}"
 
-
 @using ChanBoardModernized.Shared.Components
 @using ChanBoardModernized.Shared.Components.DTOs
 @using ChanBoardModernized.Shared.Components.Interfaces
 
-
+@if (ThreadId != Guid.Empty)
+{
+    <ThreadHeader CurrentThreadId="ThreadId" />
+}
 <div>
     @foreach (var comment in Comments)
     {

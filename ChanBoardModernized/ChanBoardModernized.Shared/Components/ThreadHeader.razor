@@ -1,9 +1,7 @@
 ﻿@inherits FluxorComponent
-
 @using ChanBoardModernized.Shared.Components.DTOs
 @using ChanBoardModernized.Shared.Components.Interfaces
 @using ChanBoardModernized.Shared.States
-
 
 <div class="header-chan">
     <!--Available Boards list-->
@@ -47,32 +45,16 @@
 
     <hr class="header-line-divider" />
 
-    @if(IsOnBoardPage)
-    {
-        <div class="new-thread-form">
-            @if (ShowForm)
-            {
-                <CreateThreadForm CurrentBoard="@BoardState.Value.CurrentBoard"/>
-            }
-            else
-            {
-                <h3>[<a @onclick="() => ShowForm = true">Start New Thread</a>]</h3>
-            }
-        </div>
-    }
-    else
-    {
-        <div class="new-thread-form">
-            @if (ShowForm)
-            {
-                <AddCommentForm CurrentThread="@BoardState.Value.CurrentBoard" />
-            }
-            else
-            {
-                <h3>[<a @onclick="() => ShowForm = true">Post a Reply</a>]</h3>
-            }
-        </div>
-    }
+    <div class="new-comment-form">
+        @if (ShowForm)
+        {
+            <AddCommentForm CurrentThreadId="@CurrentThreadId" />
+        }
+        else
+        {
+            <h3>[<a @onclick="() => ShowForm = true">Post a Reply</a>]</h3>
+        }
+    </div>
 
     <hr class="mini-header-line-divider" />
 
@@ -86,7 +68,7 @@
     </div>
 
     <hr class="mini-header-line-divider" />
-    
+
     <!-- Ad image -->
     <div class="advertised-photo">
         <Image Src="images/ad_placeholder.png"
@@ -113,29 +95,27 @@
     [Inject]
     private IDispatcher Dispatcher { get; set; } = null!;
     [Parameter]
-    public bool IsOnBoardPage { get; set; } = true;
+    public Guid CurrentThreadId { get; set; }
 
     private List<BoardDTO> BoardDTOs { get; set; } = new List<BoardDTO>();
     private bool Loading { get; set; } = true;
     private bool HasErrors { get; set; } = false;
     private bool ShowForm { get; set; } = false;
 
-    protected override async Task OnInitializedAsync()
+    override protected async Task OnInitializedAsync()
     {
         try
         {
             BoardDTOs = await ChanBoardHttpClient.GetBoards();
         }
-        catch (Exception)
+        catch
         {
             HasErrors = true;
-            // Handle error (e.g., log it)
         }
         finally
         {
             Loading = false;
         }
-
         await base.OnInitializedAsync();
     }
 

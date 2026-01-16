@@ -9,6 +9,38 @@
             File: <span class="temp-filename-style">@FrontendHelperFunctions.FormatFileName(longString)</span> (324 KB, 1254X1254)
         </span>
     </div>
+
+    <!-- Top Level details -->
+    <div class="top-level-details">
+        <CheckboxInput @bind-Value="IsSelected" />
+        @if (IsFirstComment)
+        {
+            if (!string.IsNullOrWhiteSpace(CommentDTO.Title))
+            {
+                <span class="thread-title">
+                    @CommentDTO.Title
+                </span>
+            }
+            
+        }
+        <span class="user-name">
+            @if (string.IsNullOrWhiteSpace(CommentDTO.Author))
+            {
+                <b>Anonymous</b>
+            }
+            else
+            {
+                <b>@CommentDTO.Author</b>
+            }
+        </span>
+        <span class="date-time">
+            @CommentDTO.CreatedAt.ToLocalTime().ToString("MM/dd/yy(ddd)HH:mm:ss", CultureInfo.InvariantCulture)
+        </span>
+        <span>
+            No.@CommentDTO.PostDigits.ToString("D9")
+        </span>
+        <button class="btn btn-sm" @onclick="() => GoToThread()"><Icon Name="IconName.CaretRightFill" /> </button>
+    </div>
 }
 
 <div class="outer-container">
@@ -25,39 +57,30 @@
     }
     <div class="@(IsFirstComment ? "op-container" : "post-container")">
     
-        <!-- Top Level details -->
-        <div class="top-level-details">
-            <CheckboxInput @bind-Value="IsSelected"/>
-            @if (IsFirstComment)
-            {
-                if(!string.IsNullOrWhiteSpace(ThreadTitle))
-                {
-                    <span class="thread-title">
-                        @ThreadTitle
-                    </span>
-                }
-                <span class="thread-title">
-                    @CommentDTO.Title 
+        @if(!IsFirstComment)
+        {
+            <!-- Top Level details -->
+            <div class="top-level-details">
+                <CheckboxInput @bind-Value="IsSelected"/>
+                <span class="user-name">
+                    @if (string.IsNullOrWhiteSpace(CommentDTO.Author))
+                    {
+                        <b>Anonymous</b>
+                    }
+                    else
+                    {
+                        <b>@CommentDTO.Author</b>
+                    }
                 </span>
-            }
-            <span class="user-name">
-                @if(string.IsNullOrWhiteSpace(CommentDTO.Author))
-                {
-                    <b>Anonymous</b>
-                }
-                else
-                {
-                    <b>@CommentDTO.Author</b>
-                }
-            </span>
-            <span class="date-time">
-                @CommentDTO.CreatedAt.ToLocalTime().ToString("MM/dd/yy(ddd)HH:mm:ss", CultureInfo.InvariantCulture)
-            </span>
-            <span>
-                    No.@CommentDTO.PostDigits.ToString("D9")
-            </span>
-            <Icon Name="IconName.CaretRightFill"/>
-        </div>
+                <span class="date-time">
+                    @CommentDTO.CreatedAt.ToLocalTime().ToString("MM/dd/yy(ddd)HH:mm:ss", CultureInfo.InvariantCulture)
+                </span>
+                <span>
+                        No.@CommentDTO.PostDigits.ToString("D9")
+                </span>
+                <button class="btn btn-sm" @onclick="() => GoToThread()"><Icon Name="IconName.CaretRightFill" /> </button>
+            </div>
+        }
 
         <!-- file details -->
         <div>
@@ -86,6 +109,8 @@
 
 
 @code {
+    [Inject]
+    public NavigationManager NavigationManager { get; set; } = null!;
     [Parameter]
     public CommentDTO CommentDTO { get; set; } = null!;
     [Parameter]
@@ -100,4 +125,19 @@
     private bool IsSelected = false;
 
     private string longString = "Some-long-file-name-where-people-type-too-much.png";
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    private void GoToThread()
+    {
+        //if not already there, navigate to the thread page
+        if(NavigationManager.Uri.EndsWith($"/thread/{CommentDTO.ThreadId}"))
+        {
+            return;
+        }
+        NavigationManager.NavigateTo($"/thread/{CommentDTO.ThreadId}");
+    }
 }
