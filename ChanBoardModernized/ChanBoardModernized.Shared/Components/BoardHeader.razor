@@ -8,7 +8,7 @@
 <div class="header-chan">
     <!--Available Boards list-->
     <div class="dropdown-style">
-        <Dropdown Color="DropdownColor.Secondary">
+        <Dropdown Color="DropdownColor.Secondary" Size="DropdownSize.Small">
             <DropdownToggleButton>Select Board</DropdownToggleButton>
             <DropdownMenu>
                 @if (Loading)
@@ -27,7 +27,7 @@
                 {
                     @foreach (var board in BoardDTOs)
                     {
-                        <DropdownItem @onclick=@(() => NavigateToBoard(board.ShortName)) Type="DropdownItemType.Link" Active="@(board.ShortName == BoardState.Value.CurrentBoard?.ShortName)">/ @board.ShortName / @(board.ShortName == BoardState.Value.CurrentBoard?.ShortName ? "currently viewing" : "")</DropdownItem>
+                        <DropdownItem @onclick="@(() => NavigateToBoard(board.ShortName))" Type="DropdownItemType.Link" Active="@(board.ShortName == BoardState.Value.CurrentBoard?.ShortName)">/ @board.ShortName / @(board.ShortName == BoardState.Value.CurrentBoard?.ShortName ? "currently viewing" : "")</DropdownItem>
                     }
                 }
             </DropdownMenu>

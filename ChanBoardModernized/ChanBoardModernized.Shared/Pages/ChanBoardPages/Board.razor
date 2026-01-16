@@ -78,7 +78,19 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        Threads = await ChanBoardHttpClient.GetPreviewThreads(ShortName, 1, 10);
+        Loading = true;
+        try
+        {
+            Threads = await ChanBoardHttpClient.GetPreviewThreads(ShortName, 1, 10);
+        }
+        catch (Exception)
+        {
+            HasErrors = true;
+        }
+        finally
+        {
+            Loading = false;
+        }
         await base.OnParametersSetAsync();
     }
 }

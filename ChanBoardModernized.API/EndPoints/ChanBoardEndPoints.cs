@@ -97,28 +97,88 @@ public static class ChanBoardEndPoints
                 Id = t.Id,
                 Title = t.Title ?? "",
                 CreatedDate = t.CreatedAt,
-                Comments = new List<CommentDTO>()
+                Comments = new List<CommentDTO>(),
+                BoardId = t.BoardId,
+                CommentCount = t.CommentCount
             }).ToListAsync();
 
             foreach (var thread in threads)
             {
-                var recentComments = await dbContext.Comments
-                .AsNoTracking()
-                .Where(c => c.ThreadId == thread.Id)
-                .OrderByDescending(c => c.CreatedAt)
-                .Take(2)
-                .Select(c => new CommentDTO()
+                var recentComments = new List<CommentDTO>();
+                if (thread.CommentCount < 4)
                 {
-                    Id = c.Id,
-                    Content = c.TextContent,
-                    CreatedAt = c.CreatedAt,
-                    ThreadId = c.ThreadId,
-                    PostDigits = c.PostDigits,
-                    Author = c.DisplayAuthor
+                    recentComments = await dbContext.Comments
+                        .AsNoTracking()
+                        .Where(c => c.ThreadId == thread.Id)
+                        .OrderBy(c => c.CreatedAt)
+                        .Select(c => new CommentDTO()
+                        {
+                            Id = c.Id,
+                            Content = c.TextContent,
+                            CreatedAt = c.CreatedAt,
+                            ThreadId = c.ThreadId,
+                            PostDigits = c.PostDigits,
+                            Author = c.DisplayAuthor
+                        }).ToListAsync();
+                }
+                else
+                {
+                    //Get first comment then last 2 comments
+                    var firstComment = await dbContext.Comments
+                        .AsNoTracking()
+                        .Where(c => c.ThreadId == thread.Id)
+                        .OrderBy(c => c.CreatedAt)
+                        .Select(c => new CommentDTO()
+                        {
+                            Id = c.Id,
+                            Content = c.TextContent,
+                            CreatedAt = c.CreatedAt,
+                            ThreadId = c.ThreadId,
+                            PostDigits = c.PostDigits,
+                            Author = c.DisplayAuthor
+                        }).FirstOrDefaultAsync();
+                    if (firstComment == null)
+                    {
+                        // This should not happen, but just in case
+                        // Thread found but no comments found
+                        continue;
+                    }
+                    var lastTwoComments = await dbContext.Comments
+                        .AsNoTracking()
+                        .Where(c => c.ThreadId == thread.Id)
+                        .OrderByDescending(c => c.CreatedAt)
+                        .Take(2)
+                        .Select(c => new CommentDTO()
+                        {
+                            Id = c.Id,
+                            Content = c.TextContent,
+                            CreatedAt = c.CreatedAt,
+                            ThreadId = c.ThreadId,
+                            PostDigits = c.PostDigits,
+                            Author = c.DisplayAuthor
+                        }).ToListAsync();
+                    recentComments.Add(firstComment);
+                    recentComments.AddRange(lastTwoComments);
 
-                }).ToListAsync();
-                recentComments[0].Title = thread.Title;
+
+                    //recentComments = await dbContext.Comments
+                    //    .AsNoTracking()
+                    //    .Where(c => c.ThreadId == thread.Id)
+                    //    .OrderByDescending(c => c.CreatedAt)
+                    //    .Take(2)
+                    //    .Select(c => new CommentDTO()
+                    //    {
+                    //        Id = c.Id,
+                    //        Content = c.TextContent,
+                    //        CreatedAt = c.CreatedAt,
+                    //        ThreadId = c.ThreadId,
+                    //        PostDigits = c.PostDigits,
+                    //        Author = c.DisplayAuthor
+
+                    //    }).ToListAsync();
+                }
                 thread.Comments = recentComments.OrderBy(c => c.CreatedAt).ToList();
+                recentComments[0].Title = thread.Title;
             }
 
             return Results.Ok(threads);
@@ -140,6 +200,7 @@ public static class ChanBoardEndPoints
                 BoardId = board.Id,
                 Title = threadDto.Title,
                 CreatedAt = DateTime.UtcNow,
+                CommentCount = 1
             };
 
             //When MongoDb has been initalized
@@ -166,6 +227,16 @@ public static class ChanBoardEndPoints
         //Create comment
         app.MapPost("api/comment", async (CommentDTO commentDto, ChanContext dbContext, CommentCounterService commentCounterService) =>
         {
+            var thread = await dbContext.Threads.FirstOrDefaultAsync(t => t.Id == commentDto.ThreadId);
+            if (thread != null)
+            {
+                thread.CommentCount += 1;
+            }
+            else
+            {
+                return Results.NotFound("Thread not found or deleted");
+            }
+
             var comment = new Comment
             {
                 Id = Guid.NewGuid(),
@@ -176,8 +247,10 @@ public static class ChanBoardEndPoints
             };
             var Nextdigit = await commentCounterService.GetNextCounterValueAsync(comment.ThreadId);
             comment.PostDigits = Nextdigit;
-            
+
+            dbContext.Threads.Update(thread);
             dbContext.Comments.Add(comment);
+            
             await dbContext.SaveChangesAsync();
 
             commentDto.Id = comment.Id;

@@ -13,6 +13,7 @@ public class ThreadDTO
     public Guid BoardId { get; set; }
     public string Author { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
+    public int CommentCount { get; set; }
     [Required]
     public string Content { get; set; } = string.Empty; //Used for the initial post content
     public DateTime CreatedDate { get; set; }
