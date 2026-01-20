@@ -18,51 +18,55 @@ public class CommentCounterService
     /// Atomically increments the counter and resets to 1 if it reaches 999999999.
     /// Uses MongoDB's native atomic operations for thread safety.
     /// </summary>
-    public async Task<int> GetNextCounterValueAsync(Guid boardId)
+    public async Task<int> GetNextCounterValueAsync(Guid boardId, int maxRetries = 3)
     {
         const int MAX_VALUE = 999999999;
 
         // Use a transaction for safety
-        using var transaction = await _context.Database.BeginTransactionAsync();
-
-        try
+        for (int attempt = 0; attempt < maxRetries; attempt++)
         {
-            // Get or create counter with row lock (FOR UPDATE)
-            var counter = await _context.CommentCounters
-                .Where(c => c.BoardId == boardId)
-                .FirstOrDefaultAsync();
-
-            if (counter == null)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                // Initialize new counter
-                counter = new CommentCounter
+                // Get or create counter with row lock (FOR UPDATE)
+                var counter = await _context.CommentCounters
+                    .Where(c => c.BoardId == boardId)
+                    .FirstOrDefaultAsync();
+
+                if (counter == null)
                 {
-                    Id = Guid.NewGuid(),
-                    BoardId = boardId,
-                    Value = 1
-                };
-                _context.Add(counter);
-            }
-            else if (counter.Value >= MAX_VALUE)
-            {
-                // Reset to 1
-                counter.Value = 1;
-            }
-            else
-            {
-                // Normal increment
-                counter.Value++;
-            }
+                    // Initialize new counter
+                    counter = new CommentCounter
+                    {
+                        Id = Guid.NewGuid(),
+                        BoardId = boardId,
+                        Value = 1
+                    };
+                    _context.Add(counter);
+                }
+                else if (counter.Value >= MAX_VALUE)
+                {
+                    // Reset to 1
+                    counter.Value = 1;
+                }
+                else
+                {
+                    // Normal increment
+                    counter.Value++;
+                }
 
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
 
-            return counter.Value;
+                return counter.Value;
+            }
+            catch (DbUpdateConcurrencyException) when (attempt < maxRetries - 1)
+            {
+                // Retry on concurrency conflict
+                await Task.Delay(TimeSpan.FromMilliseconds(50 * (attempt + 1)));
+            }
         }
-        catch(Exception ex)
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
+
+        throw new InvalidOperationException("Failed to get comment digits");
     }
 }

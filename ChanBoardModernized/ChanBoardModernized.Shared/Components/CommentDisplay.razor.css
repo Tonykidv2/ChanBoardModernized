@@ -76,6 +76,12 @@
     display: block;
 }*/
 
+.file-info {
+    font-size: clamp(0.7rem, 5vw, 0.875rem); /* scales between 0.7rem and 0.875rem */
+    white-space: nowrap;
+    overflow: hidden;
+}
+
 .outer-container {
     /* use normal flow so float works and text can wrap around images */
     display: flex;
@@ -117,10 +123,15 @@
 }
 
 .top-level-details {
+    font-size: clamp(0.7rem, 5vw, 0.875rem);
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 0.4rem;
+}
+
+.check-box-style {
+    min-height: 0rem;
 }
 
 .thread-title {

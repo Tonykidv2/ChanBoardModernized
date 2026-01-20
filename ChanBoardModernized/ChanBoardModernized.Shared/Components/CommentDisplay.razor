@@ -5,14 +5,14 @@
 @if(IsFirstComment)
 {
     <div>
-        <span>
+        <span class="file-info">
             File: <span class="temp-filename-style">@FrontendHelperFunctions.FormatFileName(longString)</span> (324 KB, 1254X1254)
         </span>
     </div>
 
     <!-- Top Level details -->
     <div class="top-level-details">
-        <CheckboxInput @bind-Value="IsSelected" />
+        <CheckboxInput @bind-Value="IsSelected" class="check-box-style"/>
         @if (IsFirstComment)
         {
             if (!string.IsNullOrWhiteSpace(CommentDTO.Title))

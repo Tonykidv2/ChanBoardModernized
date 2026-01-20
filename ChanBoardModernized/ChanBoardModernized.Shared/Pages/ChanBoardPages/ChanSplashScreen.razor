@@ -37,7 +37,7 @@
                 {
                     <p class="text-danger">Error loading boards. Please try again later.</p>
                     <!-- Refresh button -->
-                    <Button Color="ButtonColor.Primary" onclick="@(() => ReloadBoards())">Reload Boards</Button>
+                    <Button Color="ButtonColor.Primary" @onclick="@(() => ReloadBoards())">Reload Boards</Button>
                 }
                 else if (Boards.Count == 0) 
                 {
@@ -110,6 +110,8 @@
         try
         {
             Boards = await ChanBoardHttpClient.GetBoards();
+            //refresh component
+            StateHasChanged();
         }
         catch (Exception ex)
         {
