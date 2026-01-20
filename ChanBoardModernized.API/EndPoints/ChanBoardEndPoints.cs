@@ -222,8 +222,7 @@ public static class ChanBoardEndPoints
             return Results.Ok(result);
         });//.RequireAuthorization(policy =>
            //policy.RequireRole(UserRole.User.ToString(), UserRole.Admin.ToString()));)
-           //Create Comment
-
+        
         //Create comment
         app.MapPost("api/comment", async (CommentDTO commentDto, ChanContext dbContext, CommentCounterService commentCounterService) =>
         {

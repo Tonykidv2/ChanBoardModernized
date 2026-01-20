@@ -59,7 +59,7 @@ public class CommentCounterService
 
             return counter.Value;
         }
-        catch
+        catch(Exception ex)
         {
             await transaction.RollbackAsync();
             throw;
