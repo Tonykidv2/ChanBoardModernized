@@ -1,4 +1,6 @@
-﻿using ChanBoardModernized.API.Services;
+﻿using ChanBoardModernized.API.Data;
+using ChanBoardModernized.API.Services;
+using ChanBoardModernized.Shared.Components;
 using ChanBoardModernized.Shared.Components.DTOs;
 using Microsoft.AspNetCore.Authorization;
 
@@ -38,6 +40,28 @@ public static class AuthEndpoints
             }
             return Results.Ok("Token revoked");
         }).RequireAuthorization();
+
+        app.MapPut("/api/users/{userId}/role", async (
+            Guid userId,
+            UserRole newRole,
+            ChanContext dbContext,
+            AuthService authService) =>
+                {
+                    var user = await dbContext.Users.FindAsync(userId);
+                    if (user == null)
+                    {
+                        return Results.NotFound();
+                    }
+
+                    user.Role = newRole;
+                    dbContext.Users.Update(user);
+                    await dbContext.SaveChangesAsync();
+
+                    // Revoke all refresh tokens to force re-login
+                    await authService.RevokeAllUserTokensAsync(userId);
+
+                    return Results.Ok(new { message = "Role updated. User must re-login." });
+                }).RequireAuthorization(policy => policy.RequireRole(UserRole.Admin.ToString()));
 
         return app;
     }

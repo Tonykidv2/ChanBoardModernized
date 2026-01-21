@@ -86,15 +86,9 @@ public class AuthService
         var storedToken = await _dbContext.RefreshTokens
             .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
 
-        if (storedToken == null)
+        if (storedToken == null || storedToken.IsRevoked || storedToken.ExpiresAt < DateTime.UtcNow)
         {
-            return new AuthResponseDto(string.Empty, "Invalid refresh token");
-        }
-
-        if (storedToken.ExpiresAt < DateTime.UtcNow)
-        {
-            await RemoveRefreshToken(refreshToken);
-            return new AuthResponseDto(string.Empty, "Refresh token has expired");
+            return new AuthResponseDto(string.Empty, "Invalid or expired refresh token");
         }
 
         var user = await _dbContext.Users
@@ -106,25 +100,48 @@ public class AuthService
             return new AuthResponseDto(string.Empty, "User not found");
         }
 
-        // remove old refresh token and generate new ones
+        // Revoke old refresh token and generate new ones
+        storedToken.IsRevoked = true;
         var newRefreshToken = await GenerateRefreshTokenAsync(user.Id);
-        await RemoveRefreshToken(refreshToken);
+        storedToken.ReplacedByToken = newRefreshToken;
+
+        _dbContext.RefreshTokens.Update(storedToken);
+        await _dbContext.SaveChangesAsync();
 
         var newAccessToken = GenerateJwtToken(user);
 
         return new AuthResponseDto(newAccessToken, string.Empty) { RefreshToken = newRefreshToken };
     }
 
+    public async Task RevokeAllUserTokensAsync(Guid userId)
+    {
+        var userTokens = await _dbContext.RefreshTokens
+        .Where(rt => rt.UserId == userId && !rt.IsRevoked)
+        .ToListAsync();
+
+        foreach (var token in userTokens)
+        {
+            token.IsRevoked = true;
+        }
+
+        _dbContext.RefreshTokens.UpdateRange(userTokens);
+        await _dbContext.SaveChangesAsync();
+    }
+
     public async Task<bool> RemoveRefreshToken(string refreshToken) 
     {
         var storedToken = await _dbContext.RefreshTokens
             .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
-        if (storedToken == null)
+
+        if (storedToken == null || storedToken.IsRevoked)
         {
             return false;
         }
-        _dbContext.RefreshTokens.Remove(storedToken);
+
+        storedToken.IsRevoked = true;
+        _dbContext.RefreshTokens.Update(storedToken);
         await _dbContext.SaveChangesAsync();
+
         return true;
     }
 
@@ -168,7 +185,8 @@ public class AuthService
             UserId = userId,
             Token = token,
             ExpiresAt = DateTime.UtcNow.AddDays(7), // Longer-lived refresh token
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            IsRevoked = false
         };
 
         _dbContext.RefreshTokens.Add(refreshToken);

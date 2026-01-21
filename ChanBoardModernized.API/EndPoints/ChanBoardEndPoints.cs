@@ -12,36 +12,6 @@ public static class ChanBoardEndPoints
 {
     public static IEndpointRouteBuilder MapChanBoardEndPoints(this IEndpointRouteBuilder app)
     {
-        //create board
-        app.MapPost("/api/boards", async (BoardDTO boardDto, ChanContext dbContext) =>
-        {
-            try
-            {
-                if(await dbContext.Boards.AnyAsync(b => b.ShortName == boardDto.Name))
-                {
-                    return Results.Conflict(new BoardResponseDTO(null, "Board already Created"));
-                }
-
-                var board = new Data.Entities.Board
-                {
-                    Id = Guid.NewGuid(),
-                    Name = boardDto.Name,
-                    ShortName = boardDto.ShortName,
-                    Description = boardDto.Description
-                };
-                dbContext.Boards.Add(board);
-                await dbContext.SaveChangesAsync();
-                boardDto.Id = board.Id;
-                var result = new BoardResponseDTO(boardDto, string.Empty);
-                return Results.Created($"/api/boards/{board.ShortName}", result);
-            }
-            catch(Exception ex)
-            {
-                return Results.InternalServerError(new BoardResponseDTO(null, "Something went wrong adding board to database"));
-            }
-        }).RequireAuthorization(policy =>
-                policy.RequireRole(UserRole.Admin.ToString()));
-
         //get all boards
         app.MapGet("/api/boards", async (ChanContext dbContext) =>
         {
@@ -220,8 +190,7 @@ public static class ChanBoardEndPoints
             threadDto.Id = thread.Id;
             var result = new ThreadResponseDTO(threadDto, string.Empty);
             return Results.Ok(result);
-        });//.RequireAuthorization(policy =>
-           //policy.RequireRole(UserRole.User.ToString(), UserRole.Admin.ToString()));)
+        });
         
         //Create comment
         app.MapPost("api/comment", async (CommentDTO commentDto, ChanContext dbContext, CommentCounterService commentCounterService) =>
@@ -287,6 +256,56 @@ public static class ChanBoardEndPoints
 
             return Results.Ok(comments);
         });
+
+
+        ///Admin Endpoints go here for managing boards, threads, comments, users, etc.
+
+        //create board
+        app.MapPost("/api/boards", async (BoardDTO boardDto, ChanContext dbContext) =>
+        {
+            try
+            {
+                if (await dbContext.Boards.AnyAsync(b => b.ShortName == boardDto.Name))
+                {
+                    return Results.Conflict(new BoardResponseDTO(null, "Board already Created"));
+                }
+
+                var board = new Data.Entities.Board
+                {
+                    Id = Guid.NewGuid(),
+                    Name = boardDto.Name,
+                    ShortName = boardDto.ShortName,
+                    Description = boardDto.Description
+                };
+                dbContext.Boards.Add(board);
+                await dbContext.SaveChangesAsync();
+                boardDto.Id = board.Id;
+                var result = new BoardResponseDTO(boardDto, string.Empty);
+                return Results.Created($"/api/boards/{board.ShortName}", result);
+            }
+            catch (Exception ex)
+            {
+                return Results.InternalServerError(new BoardResponseDTO(null, "Something went wrong adding board to database"));
+            }
+        }).RequireAuthorization(policy =>
+                policy.RequireRole(UserRole.Admin.ToString()));
+
+        app.MapPost("/api/auth/cleanup-tokens", async (ChanContext dbContext) =>
+        {
+            var cutoffDate = DateTime.UtcNow.AddDays(-7);
+
+            var tokensToDelete = await dbContext.RefreshTokens
+                .Where(rt =>
+                    (rt.ExpiresAt < cutoffDate) ||
+                    (rt.IsRevoked && rt.CreatedAt < cutoffDate))
+                .ToListAsync();
+
+            dbContext.RefreshTokens.RemoveRange(tokensToDelete);
+            var count = await dbContext.SaveChangesAsync();
+
+            return Results.Ok(new { DeletedCount = count, CutoffDate = cutoffDate });
+        }).RequireAuthorization(policy => 
+                policy.RequireRole(UserRole.Admin.ToString()));
 
         return app;
     }

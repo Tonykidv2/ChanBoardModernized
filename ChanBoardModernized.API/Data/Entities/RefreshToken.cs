@@ -15,4 +15,8 @@ public class RefreshToken
     public DateTime ExpiresAt { get; set; }
 
     public DateTime CreatedAt { get; set; }
+
+    public bool IsRevoked { get; set; }
+
+    public string? ReplacedByToken { get; set; }
 }

@@ -11,17 +11,14 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.Services.AddSingleton<IFormFactor, FormFactor>();
 builder.Services.AddSingleton<IAuthState, AuthState>();
 builder.Services.AddSingleton<ITokenStore, WebTokenStore>();
-//builder.Services.AddSingleton<HttpClient>(hp =>
-//    new HttpClient
-//    {
-//        BaseAddress = new Uri("https://localhost:32001/")
-//    });
+
 builder.Services.AddScoped<TokenRefreshHandler>();
 builder.Services.AddScoped<TokenRefreshService>();
 builder.Services.AddHttpClient("ChanAPIClient", client =>
 {
     client.BaseAddress = new Uri("https://localhost:32001/");
 }).AddHttpMessageHandler<TokenRefreshHandler>();
+
 builder.Services.AddSingleton<IChanBoardHttpClient, ChanBoardHttpClient>();
 builder.Services.AddBlazorBootstrap();
 builder.Services.AddFluxor(options =>

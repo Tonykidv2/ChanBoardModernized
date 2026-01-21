@@ -2,6 +2,7 @@ using ChanBoardModernized.API.Data;
 using ChanBoardModernized.API.Data.Entities;
 using ChanBoardModernized.API.EndPoints;
 using ChanBoardModernized.API.EndPointsl;
+using ChanBoardModernized.API.Middleware;
 using ChanBoardModernized.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -12,6 +13,7 @@ using Scalar.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddHostedService<RefreshTokenCleanupService>();
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddTransient<CommentCounterService>();
 builder.Services.AddTransient<AuthService>();
@@ -68,6 +70,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthentication(); //Call this first!!!
+app.UseRoleValidation();
 app.UseAuthorization(); //Then this for auth
 
 app.MapControllers();

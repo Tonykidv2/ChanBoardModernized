@@ -24,11 +24,7 @@ namespace ChanBoardModernized
             builder.Services.AddSingleton<IFormFactor, FormFactor>();
             builder.Services.AddSingleton<ITokenStore, SecureTokenStore>();
             builder.Services.AddSingleton<IAuthState, AuthState>();
-            //builder.Services.AddSingleton<HttpClient>(hp =>
-            //    new HttpClient
-            //    {
-            //        BaseAddress = new Uri(GetApiBaseUrl())
-            //    });
+            
             builder.Services.AddScoped<TokenRefreshHandler>();
             builder.Services.AddScoped<TokenRefreshService>();
             builder.Services.AddHttpClient("ChanAPIClient", client =>
