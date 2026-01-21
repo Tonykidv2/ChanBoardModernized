@@ -9,6 +9,8 @@ public interface IChanBoardHttpClient
 
     Task<AuthResponseDto> RegisterAsync(RegisterDTO registerCred);
 
+    Task<AuthResponseDto> RefreshTokenAsync(string refreshToken);
+
     //Task<bool> CheckUsernameAvailabilityAsync(string username);
 
     Task<List<UserDTO>> GetAllUsersAsync();

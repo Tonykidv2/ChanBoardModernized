@@ -77,6 +77,31 @@ public class ChanBoardHttpClient : IChanBoardHttpClient
         }
     }
 
+    public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/auth/refresh",
+                new RefreshTokenRequest { RefreshToken = refreshToken });
+
+            if (response.IsSuccessStatusCode)
+            {
+                var authResponse = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
+                if (authResponse is not null && !authResponse.hasError)
+                {
+                    return authResponse;
+                }
+                return new AuthResponseDto(string.Empty, "Invalid response from server");
+            }
+
+            return new AuthResponseDto(string.Empty, "Failed to refresh token");
+        }
+        catch (Exception ex)
+        {
+            return new AuthResponseDto(string.Empty, $"Error refreshing token: {ex.Message}");
+        }
+    }
+
     public Task<AuthResponseDto> RegisterAsync(RegisterDTO registerCred)
     {
         throw new NotImplementedException();

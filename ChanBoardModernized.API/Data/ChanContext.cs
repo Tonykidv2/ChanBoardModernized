@@ -16,6 +16,7 @@ public class ChanContext : DbContext
     public DbSet<Comment> Comments { get; set; } = null!;
     public DbSet<Photo> Photos { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
+    public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
     public DbSet<CommentCounter> CommentCounters { get; set; } = null!;
     public IPasswordHasher<User> PasswordHasher { get; }
 

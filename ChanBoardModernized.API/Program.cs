@@ -41,7 +41,7 @@ builder.Services.AddAuthentication(options =>
             ValidIssuer = builder.Configuration.GetValue<string>("JWT:issuer"),
             ValidAudience = builder.Configuration.GetValue<string>("JWT:audience"),
             IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
-                System.Text.Encoding.UTF8.GetBytes(builder.Configuration.GetValue<string>("JWT:secret") ?? throw new InvalidOperationException("JWT secret not configured")))
+                System.Text.Encoding.UTF8.GetBytes(builder.Configuration.GetValue<string>("JWT:secret") ?? throw new InvalidOperationException("JWT secret not configured"))),
 
             RequireSignedTokens = true, // Reject unsigned tokens
             ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 }, // Only accept HS256

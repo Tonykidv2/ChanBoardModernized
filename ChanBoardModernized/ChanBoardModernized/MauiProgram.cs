@@ -24,11 +24,13 @@ namespace ChanBoardModernized
             builder.Services.AddSingleton<IFormFactor, FormFactor>();
             builder.Services.AddSingleton<ITokenStore, SecureTokenStore>();
             builder.Services.AddSingleton<IAuthState, AuthState>();
-            builder.Services.AddSingleton<HttpClient>(hp =>
-                new HttpClient
-                {
-                    BaseAddress = new Uri(GetApiBaseUrl())
-                });
+            //builder.Services.AddSingleton<HttpClient>(hp =>
+            //    new HttpClient
+            //    {
+            //        BaseAddress = new Uri(GetApiBaseUrl())
+            //    });
+            builder.Services.AddScoped<TokenRefreshHandler>();
+            builder.Services.AddScoped<TokenRefreshService>();
             builder.Services.AddHttpClient("ChanAPIClient", client =>
             {
                 client.BaseAddress = new Uri(GetApiBaseUrl());
@@ -44,7 +46,7 @@ namespace ChanBoardModernized
                 #else
                     return new HttpClientHandler();
                 #endif
-            });
+            }).AddHttpMessageHandler<TokenRefreshHandler>();
 
             builder.Services.AddSingleton<IChanBoardHttpClient, ChanBoardHttpClient>();
             builder.Services.AddMauiBlazorWebView();

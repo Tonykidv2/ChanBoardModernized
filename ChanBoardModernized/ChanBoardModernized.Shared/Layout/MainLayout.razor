@@ -38,6 +38,8 @@
     [Inject]
     private IAuthState authState { get; set; } = null!;
     [Inject]
+    private TokenRefreshService TokenRefreshService { get; set; } = null!;
+    [Inject]
     private NavigationManager NavigationManager { get; set; } = null!;
 
     private MyNavMenu myNavMenuRef = null!;
@@ -46,6 +48,7 @@
     protected override async Task OnInitializedAsync()
     {
         await authState.LoadAsync();
+        await TokenRefreshService.StartAsync();
         await base.OnInitializedAsync();
     }
 

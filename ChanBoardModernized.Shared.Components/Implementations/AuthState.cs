@@ -37,7 +37,7 @@ public class AuthState : IAuthState
 
         if (jwt.ValidTo < DateTime.UtcNow)
         {
-            await LogoutAsync();
+            //await LogoutAsync();
             return;
         }
 
