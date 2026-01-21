@@ -6,6 +6,7 @@ using ChanBoardModernized.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,6 +42,10 @@ builder.Services.AddAuthentication(options =>
             ValidAudience = builder.Configuration.GetValue<string>("JWT:audience"),
             IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
                 System.Text.Encoding.UTF8.GetBytes(builder.Configuration.GetValue<string>("JWT:secret") ?? throw new InvalidOperationException("JWT secret not configured")))
+
+            RequireSignedTokens = true, // Reject unsigned tokens
+            ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 }, // Only accept HS256
+            ValidTypes = new[] { "JWT" }
         };
     });
 
