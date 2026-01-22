@@ -5,42 +5,44 @@
 @using ChanBoardModernized.Shared.Components.DTOs
 @using ChanBoardModernized.Shared.Components.Interfaces
 @using ChanBoardModernized.Shared.States
+<div class="page-container">
+    <BoardHeader />
 
-<BoardHeader />
+    <!--Search field-->
+    <div class="search-container">
+        <TextInput Placeholder="Search threads..." @bind-Value="searchQuery" class="search-input-style" />
+        <span>[Catalog]</span>
+        <span>[Archive]</span>
 
-<!--Search field-->
-<div class="search-container">
-    <TextInput Placeholder="Search threads..." @bind-Value="searchQuery" class="search-input-style" />
-    <span>[Catalog]</span>
-    <span>[Archive]</span>
+    </div>
 
-</div>
+    <hr class="line-divider" />
 
-<hr class="line-divider" />
-
-<!--Threads-->
-<div class="thread-container">
-    @if (Loading)
-    {
-        <p>Loading threads...</p>
-    }
-    else if (HasErrors)
-    {
-        <p>Error loading threads.</p>
-    }
-    else if (Threads.Count == 0)
-    {
-        <p>No threads available.</p>
-    }
-    else
-    {
-        @foreach (var thread in Threads)
+    <!--Threads-->
+    <div class="thread-container">
+        @if (Loading)
         {
-            <Thread Comments="thread.Comments"/>
-
-            <hr class="line-divider" />
+            <p>Loading threads...</p>
         }
-    }
+        else if (HasErrors)
+        {
+            <p>Error loading threads.</p>
+        }
+        else if (Threads.Count == 0)
+        {
+            <p>No threads available.</p>
+        }
+        else
+        {
+            @foreach (var thread in Threads)
+            {
+                <Thread Comments="thread.Comments"/>
+
+                <hr class="line-divider" />
+            }
+        }
+    </div>
+    <footer class="footer-content">this is a sticky footers</footer>
 </div>
 
 @code {

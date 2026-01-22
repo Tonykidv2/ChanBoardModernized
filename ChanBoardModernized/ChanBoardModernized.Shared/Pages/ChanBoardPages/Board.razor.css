@@ -5,8 +5,12 @@
     width: fit-content;
 }
 
+.page-container {
+    position: relative;
+    min-height: 100vh;
+}
 .thread-container {
-
+    padding-bottom: 2.5rem;
 }
 
 .search-input-style {
@@ -15,4 +19,11 @@
 
 .line-divider {
     margin: auto;
+}
+
+.footer-content {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 2.5rem; /* Footer height */
 }

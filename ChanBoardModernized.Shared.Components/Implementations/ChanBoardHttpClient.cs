@@ -3,6 +3,7 @@ using ChanBoardModernized.Shared.Components.DTOsl;
 using ChanBoardModernized.Shared.Components.Interfaces;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Runtime.InteropServices;
 
 namespace ChanBoardModernized.Shared.Components.Implementations;
 
@@ -60,8 +61,11 @@ public class ChanBoardHttpClient : IChanBoardHttpClient
 
                 if (authResponse is not null)
                 {
-                    if(!authResponse.hasError)
+                    if (!authResponse.hasError)
+                    {
                         await _tokenStore.SaveTokenAsync(authResponse.Token);
+                        await _tokenStore.SaveRefreshTokenAsync(authResponse.RefreshToken);
+                    }
 
                     return authResponse;
                 }
