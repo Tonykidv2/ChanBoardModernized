@@ -63,17 +63,19 @@ namespace ChanBoardModernized
 
         static string GetApiBaseUrl()
         {
-            #if ANDROID
-                // Android emulator → host machine
-                return "https://10.0.2.2:32001/";
-            #elif IOS
-                // iOS simulator → host machine
-                return "https://localhost:32001/";
-            #elif WINDOWS
-                        return "https://localhost:32001/";
-            #else
-                return "https://localhost:32001/";
-            #endif
+            //#if ANDROID
+            //    // Android emulator → host machine
+            //    return "https://10.0.2.2:32001/";
+            //#elif IOS
+            //    // iOS simulator → host machine
+            //    return "https://localhost:32001/";
+            //#elif WINDOWS
+            //            return "https://localhost:32001/";
+            //#else
+            //    return "https://localhost:32001/";
+            //#endif
+
+            return "https://aschanboardmodernizedapi-eshnaye8efhdbnew.centralus-01.azurewebsites.net/";
         }
     }
 }

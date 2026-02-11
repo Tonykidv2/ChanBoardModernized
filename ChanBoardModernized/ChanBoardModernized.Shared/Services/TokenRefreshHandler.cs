@@ -75,10 +75,33 @@ public class TokenRefreshHandler : DelegatingHandler
             Content = JsonContent.Create(new RefreshTokenRequest { RefreshToken = refreshToken })
         };
 
-        var response = await base.SendAsync(refreshRequest, cancellationToken);
-        if (response.IsSuccessStatusCode)
+        //try 3 times to refresh token in case of transient errors
+        int maxRetries = 3;
+        for (int retry = 0; retry < maxRetries; retry++)
         {
-            return await response.Content.ReadFromJsonAsync<AuthResponseDto>(cancellationToken: cancellationToken);
+            try
+            {
+                var response = await base.SendAsync(refreshRequest, cancellationToken);
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<AuthResponseDto>(cancellationToken: cancellationToken);
+                }
+                else if ((int)response.StatusCode >= 500)
+                {
+                    // Transient server error, wait and retry
+                    await Task.Delay(1000 * (retry + 1), cancellationToken);
+                }
+                else
+                {
+                    // Non-transient error, stop retrying
+                    break;
+                }
+            }
+            catch (HttpRequestException)
+            {
+                // Network error, wait and retry
+                await Task.Delay(1000 * (retry + 1), cancellationToken);
+            }
         }
 
         return null;
