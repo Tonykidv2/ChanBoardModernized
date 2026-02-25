@@ -16,6 +16,10 @@ builder.Services.AddRazorComponents()
 builder.Services.AddSingleton<IFormFactor, FormFactor>();
 builder.Services.AddSingleton<IAuthState, AuthState>();
 builder.Services.AddSingleton<ITokenStore, WebTokenStore>();
+
+builder.Services.AddScoped<TokenRefreshHandler>();
+builder.Services.AddScoped<TokenRefreshService>();
+
 builder.Services.AddSingleton<HttpClient>(hp =>
     new HttpClient
     {
@@ -24,7 +28,7 @@ builder.Services.AddSingleton<HttpClient>(hp =>
 builder.Services.AddHttpClient("ChanAPIClient", client =>
 {
     client.BaseAddress = new Uri("https://host.docker.internal:32001/");
-});
+}).AddHttpMessageHandler<TokenRefreshHandler>();
 builder.Services.AddSingleton<IChanBoardHttpClient, ChanBoardHttpClient>();
 builder.Services.AddBlazorBootstrap();
 builder.Services.AddFluxor(options =>

@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  chanboard-api-server:
+    build:
+      context: .
+      dockerfile: ChanBoardModernized.API/Dockerfile
+    image: yourusername/chanboard-api:latest
+    profiles: ["server"]
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    restart: unless-stopped
+    Healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  chanboard-api-pi:
+    build:
+      context: .
+      dockerfile: ChanBoardModernized.API/Dockerfile.pi
+    image: yourusername/chanboard-api:pi-latest
+    profiles: ["pi"]
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

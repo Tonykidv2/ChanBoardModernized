@@ -51,6 +51,9 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
+//Raspberry PI open over Wireless network
+//builder.WebHost.UseUrls("http://0.0.0.0:5000");
+
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(options =>
@@ -67,6 +70,7 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
+//Comment out for piratebox deployment
 app.UseHttpsRedirection();
 
 app.UseAuthentication(); //Call this first!!!
