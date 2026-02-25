@@ -364,3 +364,7 @@ FodyWeavers.xsd
 
 /ChanBoardModernized.API/appsettings.Development.json
 /ChanBoardModernized.API/appsettings.Production.json
+# Environment files
+.env
+.env.*
+!.env.example
