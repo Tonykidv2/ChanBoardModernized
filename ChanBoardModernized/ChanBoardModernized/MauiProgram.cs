@@ -75,7 +75,7 @@ namespace ChanBoardModernized
             //    return "https://localhost:32001/";
             //#endif
 
-            return "https://aschanboardmodernizedapi-eshnaye8efhdbnew.centralus-01.azurewebsites.net/";
+            return "http://localhost:8080/";
         }
     }
 }

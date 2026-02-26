@@ -12,6 +12,17 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Detect deployment target from environment variable
+var deploymentTarget = builder.Configuration.GetValue<string>("DEPLOYMENT_TARGET") ?? "server";
+var isRaspberryPi = deploymentTarget.Equals("pi", StringComparison.OrdinalIgnoreCase);
+
+// Configure Kestrel for Raspberry Pi wireless network access
+if (isRaspberryPi)
+{
+    var port = builder.Configuration.GetValue<int>("PORT", 5000);
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
+
 // Add services to the container.
 builder.Services.AddHostedService<RefreshTokenCleanupService>();
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
@@ -23,7 +34,6 @@ builder.Services.AddDbContext<ChanContext>(options =>
     var ctString = builder.Configuration.GetConnectionString("ChanBoardMongoDB") ?? throw new InvalidOperationException("Connection string 'ChanBoardMongoDB' not found.");
     var dbName = builder.Configuration.GetValue<string>("DatabaseName") ?? throw new InvalidOperationException("Database name not configured.");
     options.UseMongoDB(ctString, dbName);
-    //options.UseInMemoryDatabase("ChanBoardInMemoryDB");
 });
 
 builder.Services.AddAuthentication(options =>
@@ -70,8 +80,11 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-//Comment out for piratebox deployment
-app.UseHttpsRedirection();
+// Only use HTTPS redirection on server deployments (not Pi)
+if (!isRaspberryPi)
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication(); //Call this first!!!
 app.UseRoleValidation();
@@ -83,9 +96,19 @@ app.MapAuthEndPoints();
 app.MapUserEndPoints();
 app.MapChanBoardEndPoints();
 
-app.MapGet("/", () => "Welcome to ChanBoardModernized API!");
+app.MapGet("/", () => new
+{
+    message = "Welcome to ChanBoardModernized API!",
+    deployment = isRaspberryPi ? "Raspberry Pi" : "Server",
+    version = "1.0.0"
+});
 
-app.MapGet("/health", () => Results.Ok("API is running!"));
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "healthy",
+    timestamp = DateTime.UtcNow,
+    deployment = isRaspberryPi ? "pi" : "server"
+}));
 
 using (var scope = app.Services.CreateScope())
 {

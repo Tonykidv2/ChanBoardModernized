@@ -1,0 +1,17 @@
+version: '2'
+services:
+  mongodb:
+    image: mongodb/mongodb-community-server:4.4.3-ubuntu2004
+    environment:
+      # Set your desired username and password here
+      MONGODB_INITDB_ROOT_USERNAME: <DB_USERNAME>
+      MONGODB_INITDB_ROOT_PASSWORD: <DB_PASSWORD>
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:
+    driver: local
