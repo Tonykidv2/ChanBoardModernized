@@ -19,10 +19,13 @@ docker-compose --profile pi push
 echo "✅ Done! Images pushed to Docker Hub"
 echo ""
 echo "Server deployment:"
+echo "  docker-compose --profile server pull"
 echo "  docker-compose --profile server up -d"
 echo ""
 echo "Raspberry Pi deployment:"
-echo "  docker-compose --profile pi up -d"
+##make sure to call the correct compose file for the Raspberry Pi deployment
+echo "  docker-compose -f docker-compose-pideploy.yml pull"
+echo "  docker-compose -f docker-compose-pideploy.yml up -d"
 
 ###How to run this script in the terminal:
 #chmod +x deploy-compose.sh

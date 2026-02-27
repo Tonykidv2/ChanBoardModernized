@@ -62,9 +62,6 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-//Raspberry PI open over Wireless network
-//builder.WebHost.UseUrls("http://0.0.0.0:5000");
-
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(options =>
@@ -110,6 +107,9 @@ app.MapGet("/health", () => Results.Ok(new
     timestamp = DateTime.UtcNow,
     deployment = isRaspberryPi ? "pi" : "server"
 }));
+
+//Hello world
+app.MapGet("/hello", () => "Hello, world! This is the ChanBoardModernized API.");   
 
 using (var scope = app.Services.CreateScope())
 {
