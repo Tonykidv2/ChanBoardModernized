@@ -8,10 +8,13 @@ namespace ChanBoardModernized.API.Services;
 public class CommentCounterService
 {
     private readonly ChanContext _context;
+    private readonly bool _isRaspberryPi;
 
-    public CommentCounterService(ChanContext context)
+    public CommentCounterService(ChanContext context, IConfiguration configuration)
     {
         _context = context;
+        var deploymentTarget = configuration.GetValue<string>("DEPLOYMENT_TARGET") ?? "server";
+        _isRaspberryPi = deploymentTarget.Equals("pi", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -25,17 +28,13 @@ public class CommentCounterService
         // Use a transaction for safety
         for (int attempt = 0; attempt < maxRetries; attempt++)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            if (_isRaspberryPi)
             {
-                // Get or create counter with row lock (FOR UPDATE)
                 var counter = await _context.CommentCounters
                     .Where(c => c.BoardId == boardId)
                     .FirstOrDefaultAsync();
-
                 if (counter == null)
                 {
-                    // Initialize new counter
                     counter = new CommentCounter
                     {
                         Id = Guid.NewGuid(),
@@ -46,24 +45,66 @@ public class CommentCounterService
                 }
                 else if (counter.Value >= MAX_VALUE)
                 {
-                    // Reset to 1
                     counter.Value = 1;
                 }
                 else
                 {
-                    // Normal increment
                     counter.Value++;
                 }
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-
-                return counter.Value;
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    return counter.Value;
+                }
+                catch (DbUpdateConcurrencyException) when (attempt < maxRetries - 1)
+                {
+                    // Retry on concurrency conflict
+                    await Task.Delay(TimeSpan.FromMilliseconds(50 * (attempt + 1)));
+                    continue;
+                }
             }
-            catch (DbUpdateConcurrencyException) when (attempt < maxRetries - 1)
+            else
             {
-                // Retry on concurrency conflict
-                await Task.Delay(TimeSpan.FromMilliseconds(50 * (attempt + 1)));
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    // Get or create counter with row lock (FOR UPDATE)
+                    var counter = await _context.CommentCounters
+                        .Where(c => c.BoardId == boardId)
+                        .FirstOrDefaultAsync();
+
+                    if (counter == null)
+                    {
+                        // Initialize new counter
+                        counter = new CommentCounter
+                        {
+                            Id = Guid.NewGuid(),
+                            BoardId = boardId,
+                            Value = 1
+                        };
+                        _context.Add(counter);
+                    }
+                    else if (counter.Value >= MAX_VALUE)
+                    {
+                        // Reset to 1
+                        counter.Value = 1;
+                    }
+                    else
+                    {
+                        // Normal increment
+                        counter.Value++;
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return counter.Value;
+                }
+                catch (DbUpdateConcurrencyException) when (attempt < maxRetries - 1)
+                {
+                    // Retry on concurrency conflict
+                    await Task.Delay(TimeSpan.FromMilliseconds(50 * (attempt + 1)));
+                }
             }
         }
 

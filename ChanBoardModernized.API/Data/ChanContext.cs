@@ -6,9 +6,16 @@ namespace ChanBoardModernized.API.Data;
 
 public class ChanContext : DbContext
 {
-    public ChanContext(DbContextOptions<ChanContext> options, IPasswordHasher<User> passwordHasher) : base(options)
+    public ChanContext(DbContextOptions<ChanContext> options, IPasswordHasher<User> passwordHasher, IConfiguration configuration) : base(options)
     {
         PasswordHasher = passwordHasher;
+
+        //check if we are on Pi and if so, disable transactions for better performance
+        var deploymentTarget = configuration.GetValue<string>("DEPLOYMENT_TARGET") ?? "server";
+        if (deploymentTarget.Equals("pi", StringComparison.OrdinalIgnoreCase))
+        {
+            Database.AutoTransactionBehavior = AutoTransactionBehavior.Never;
+        }
     }
 
     public DbSet<Board> Boards { get; set; } = null!;

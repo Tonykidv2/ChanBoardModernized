@@ -57,9 +57,12 @@ public static class ChanBoardEndPoints
             {
                 return Results.NotFound();
             }
+
+            //Get Recent threads for the board with pagination
             var threads = await dbContext.Threads
             .AsNoTracking()
             .Where(t => t.BoardId == board.Id)
+            .OrderByDescending(t => t.CreatedAt)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .Select(t => new ThreadDTO()

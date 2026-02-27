@@ -1,6 +1,28 @@
 version: '3.8'
 
 services:
+  mongo:
+    image: mongo:4.4.18
+    container_name: chanboard-mongo
+    profiles: ["pi"]
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: SuperSecretPassword123!
+      MONGO_INITDB_DATABASE: ChanBoardDb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - chanboard-network
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   chanboard-api-server:
     build:
       context: .
@@ -11,14 +33,9 @@ services:
       - "8080:8080"
       - "8081:8081"
     environment:
+      - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_ENVIRONMENT=Production
       - DEPLOYMENT_TARGET=server
-      - ConnectionStrings__ChanBoardMongoDB=${MONGO_CONNECTION_STRING}
-      - DatabaseName=${DATABASE_NAME:-ChanBoardDb}
-      - JWT__secret=${JWT_SECRET}
-      - JWT__issuer=${JWT_ISSUER:-ChanBoardModernized.API}
-      - JWT__audience=${JWT_AUDIENCE:-ChanBoardModernized.Web}
-      - JWT__ExpirationInHours=${JWT_EXPIRATION_HOURS:-12}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
@@ -31,6 +48,8 @@ services:
     build:
       context: .
       dockerfile: ChanBoardModernized.API/Dockerfile.pi
+      platforms: 
+        - linux/arm64
     image: anthonyr001/chanboard-api:pi-latest
     profiles: ["pi"]
     ports:
@@ -40,16 +59,21 @@ services:
       - ASPNETCORE_ENVIRONMENT=Pi
       - DEPLOYMENT_TARGET=pi
       - PORT=5000
-      - ConnectionStrings__ChanBoardMongoDB=${MONGO_DB_CONNECTION_STRING_LOCAL}
-      - DatabaseName=${DATABASE_NAME:-ChanBoardDb}
-      - JWT__secret=${JWT_SECRET}
-      - JWT__issuer=${JWT_ISSUER:-ChanBoardModernized.API}
-      - JWT__audience=${JWT_AUDIENCE:-ChanBoardModernized.Web}
-      - JWT__ExpirationInHours=${JWT_EXPIRATION_HOURS:-12}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - chanboard-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    network_mode: host  # For Pi wireless network access
+
+networks:
+  chanboard-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
