@@ -26,7 +26,8 @@
       "publishAllPorts": true,
       "useSSL": true,
       "httpPort": 32000,
-      "sslPort":  32001
+      "sslPort": 32001,
+      "DockerfileRunArguments": "--network chanboard-network"
     }
   },
   "$schema": "https://json.schemastore.org/launchsettings.json"

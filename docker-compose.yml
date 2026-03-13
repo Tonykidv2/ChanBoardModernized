@@ -1,6 +1,73 @@
-version: '3.8'
-
 services:
+  # Nginx Reverse Proxy for Server
+  nginx:
+    build:
+      context: ./.containers/nginx
+      dockerfile: Dockerfile.server
+    image: chanboard-nginx:server
+    container_name: chanboard-nginx
+    profiles: ["server"]
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./.containers/nginx/logs:/var/log/nginx
+    networks:
+      - chanboard-network
+    depends_on:
+      chanboard-api-server:
+        condition: service_started
+      chanboard-blob-storage:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Nginx Reverse Proxy for Pi
+  nginx-pi:
+    build:
+      context: ./.containers/nginx
+      dockerfile: Dockerfile.pi
+    image: chanboard-nginx:pi
+    container_name: chanboard-nginx
+    profiles: ["pi"]
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./.containers/nginx/logs:/var/log/nginx
+    networks:
+      - chanboard-network
+    depends_on:
+      chanboard-api-pi:
+        condition: service_started
+      chanboard-blob-storage:
+        condition: service_started
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  chanboard-blob-storage:
+    profiles: ["pi", "server", "debug"]
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    container_name: chanboard.blob-storage
+    restart: unless-stopped
+    volumes:
+      - ./.containers/blob_storage/data:/data
+    networks:
+      - chanboard-network
+    command: "azurite-blob --blobHost 0.0.0.0 -l /data --skipApiVersionCheck"
+
   mongo:
     image: mongo:4.4.18
     container_name: chanboard-mongo
@@ -10,10 +77,8 @@ services:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: SuperSecretPassword123!
       MONGO_INITDB_DATABASE: ChanBoardDb
-    ports:
-      - "27017:27017"
     volumes:
-      - mongo-data:/data/db
+      - ./.containers/mongo_data:/data/db
     networks:
       - chanboard-network
     healthcheck:
@@ -29,14 +94,16 @@ services:
       dockerfile: ChanBoardModernized.API/Dockerfile
     image: anthonyr001/chanboard-api:latest
     profiles: ["server"]
-    ports:
-      - "8080:8080"
-      - "8081:8081"
     environment:
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=Development
       - DEPLOYMENT_TARGET=server
+      - PORT=8080
+      - ConnectionStrings__BlobStorage=AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;AccountName=devstoreaccount1;BlobEndpoint=http://chanboard-blob-storage:10000/devstoreaccount1;
     restart: unless-stopped
+    networks:
+      - chanboard-network
+    depends_on:
+      - chanboard-blob-storage
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -52,8 +119,6 @@ services:
         - linux/arm64
     image: anthonyr001/chanboard-api:pi-latest
     profiles: ["pi"]
-    ports:
-      - "5000:5000"
     restart: unless-stopped
     environment:
       - ASPNETCORE_ENVIRONMENT=Pi
@@ -62,6 +127,10 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+      chanboard-blob-storage:
+        condition: service_started
+      nginx:
+        condition: service_started
     networks:
       - chanboard-network
     healthcheck:
@@ -74,6 +143,3 @@ services:
 networks:
   chanboard-network:
     driver: bridge
-
-volumes:
-  mongo-data:

@@ -1,9 +1,11 @@
+using Azure.Storage.Blobs;
 using ChanBoardModernized.API.Data;
 using ChanBoardModernized.API.Data.Entities;
 using ChanBoardModernized.API.EndPoints;
 using ChanBoardModernized.API.EndPointsl;
 using ChanBoardModernized.API.Middleware;
 using ChanBoardModernized.API.Services;
+using ChanBoardModernized.API.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -15,11 +17,18 @@ var builder = WebApplication.CreateBuilder(args);
 // Detect deployment target from environment variable
 var deploymentTarget = builder.Configuration.GetValue<string>("DEPLOYMENT_TARGET") ?? "server";
 var isRaspberryPi = deploymentTarget.Equals("pi", StringComparison.OrdinalIgnoreCase);
+var isServerDeployment = deploymentTarget.Equals("server", StringComparison.OrdinalIgnoreCase);
 
 // Configure Kestrel for Raspberry Pi wireless network access
 if (isRaspberryPi)
 {
     var port = builder.Configuration.GetValue<int>("PORT", 5000);
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
+else if (isServerDeployment)
+{
+    // Server deployment - HTTP only, HTTPS handled by reverse proxy
+    var port = builder.Configuration.GetValue<int>("PORT", 8080);
     builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 }
 
@@ -28,6 +37,12 @@ builder.Services.AddHostedService<RefreshTokenCleanupService>();
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddTransient<CommentCounterService>();
 builder.Services.AddTransient<AuthService>();
+builder.Services.AddSingleton<IBlobStorage, BlobStorage>();
+builder.Services.AddSingleton<BlobServiceClient>(sp =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("BlobStorage") ?? throw new InvalidOperationException("Azure Blob Storage connection string not found.");
+    return new BlobServiceClient(connectionString);
+});
 
 builder.Services.AddDbContext<ChanContext>(options =>
 {
@@ -78,8 +93,9 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-// Only use HTTPS redirection on server deployments (not Pi)
-if (!isRaspberryPi)
+// Don't use HTTPS redirection in containerized environments (handled by reverse proxy)
+// Only use it for local development
+if (!isRaspberryPi && !isServerDeployment)
 {
     app.UseHttpsRedirection();
 }
@@ -93,6 +109,7 @@ app.MapControllers();
 app.MapAuthEndPoints();
 app.MapUserEndPoints();
 app.MapChanBoardEndPoints();
+app.MapFileEndPoints();
 
 app.MapGet("/", () => new
 {

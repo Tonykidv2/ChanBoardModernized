@@ -1,0 +1,15 @@
+FROM nginx:alpine
+
+# Remove default config
+RUN rm -rf /etc/nginx/conf.d/*
+
+# Copy configuration files
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY conf.d/pi.conf /etc/nginx/conf.d/pi.conf
+
+# Create directories
+RUN mkdir -p /var/log/nginx /etc/nginx/ssl
+
+EXPOSE 80 443
+
+CMD ["nginx", "-g", "daemon off;"]

@@ -368,4 +368,12 @@ FodyWeavers.xsd
 .env
 .env.*
 !.env.example
-/.containers/
+
+# Docker data
+.containers/blob_storage/
+.containers/mongo_data/
+.containers/mongo_backups/
+.containers/nginx/logs/
+.containers/nginx/ssl/*.pem
+.containers/nginx/ssl/*.key
+.containers/nginx/ssl/*.crt
