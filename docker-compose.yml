@@ -62,6 +62,8 @@ services:
     image: mcr.microsoft.com/azure-storage/azurite:latest
     container_name: chanboard.blob-storage
     restart: unless-stopped
+    ports:
+      - "10000:10000"
     volumes:
       - ./.containers/blob_storage/data:/data
     networks:
