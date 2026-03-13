@@ -368,3 +368,4 @@ FodyWeavers.xsd
 .env
 .env.*
 !.env.example
+/.containers/blob_storage/data
