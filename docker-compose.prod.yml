@@ -3,7 +3,7 @@ services:
     build:
       context: ./.containers/nginx
       dockerfile: Dockerfile.server
-    image: chanboard-nginx:prod
+    image: anthonyr001/chanboard-nginx:prod
     container_name: chanboard-nginx-prod
     restart: unless-stopped
     ports:
@@ -31,7 +31,7 @@ services:
     build:
       context: .
       dockerfile: ChanBoardModernized.API/Dockerfile
-    image: anthonyr001/chanboard-api:latest
+    image: anthonyr001/chanboard-api:prod
     container_name: chanboard-api-prod
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
