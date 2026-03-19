@@ -377,3 +377,4 @@ FodyWeavers.xsd
 .containers/nginx/ssl/*.pem
 .containers/nginx/ssl/*.key
 .containers/nginx/ssl/*.crt
+/.containers/postgres_data/dev
