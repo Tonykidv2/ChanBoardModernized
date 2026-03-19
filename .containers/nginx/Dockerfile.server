@@ -1,15 +1,19 @@
 FROM nginx:alpine
 
-# Remove default config
+# Remove default nginx configs
 RUN rm -rf /etc/nginx/conf.d/*
 
-# Copy configuration files
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY conf.d/server.conf /etc/nginx/conf.d/server.conf
+# Create directory for logs
+RUN mkdir -p /var/log/nginx
 
-# Create directories
-RUN mkdir -p /var/log/nginx /etc/nginx/ssl
+# Copy nginx main configuration (optional - if you have custom nginx.conf)
+# COPY nginx.conf /etc/nginx/nginx.conf
 
+# Note: The actual site config will be mounted as a volume from docker-compose
+# This keeps the Dockerfile generic and environment-agnostic
+
+# Expose ports
 EXPOSE 80 443
 
+# Use default nginx entrypoint
 CMD ["nginx", "-g", "daemon off;"]

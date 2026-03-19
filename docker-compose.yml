@@ -1,147 +1,21 @@
-services:
-  # Nginx Reverse Proxy for Server
-  nginx:
-    build:
-      context: ./.containers/nginx
-      dockerfile: Dockerfile.server
-    image: chanboard-nginx:server
-    container_name: chanboard-nginx
-    profiles: ["server"]
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./.containers/nginx/logs:/var/log/nginx
-    networks:
-      - chanboard-network
-    depends_on:
-      chanboard-api-server:
-        condition: service_started
-      chanboard-blob-storage:
-        condition: service_started
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # Nginx Reverse Proxy for Pi
-  nginx-pi:
-    build:
-      context: ./.containers/nginx
-      dockerfile: Dockerfile.pi
-    image: chanboard-nginx:pi
-    container_name: chanboard-nginx
-    profiles: ["pi"]
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./.containers/nginx/logs:/var/log/nginx
-    networks:
-      - chanboard-network
-    depends_on:
-      chanboard-api-pi:
-        condition: service_started
-      chanboard-blob-storage:
-        condition: service_started
-      mongo:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  chanboard-blob-storage:
-    profiles: ["pi", "server", "debug"]
-    image: mcr.microsoft.com/azure-storage/azurite:latest
-    container_name: chanboard.blob-storage
-    restart: unless-stopped
-    ports:
-      - "10000:10000"
-    volumes:
-      - ./.containers/blob_storage/data:/data
-    networks:
-      - chanboard-network
-    command: "azurite-blob --blobHost 0.0.0.0 -l /data --skipApiVersionCheck"
-
-  mongo:
-    image: mongo:4.4.18
-    container_name: chanboard-mongo
-    profiles: ["pi"]
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: SuperSecretPassword123!
-      MONGO_INITDB_DATABASE: ChanBoardDb
-    volumes:
-      - ./.containers/mongo_data:/data/db
-    networks:
-      - chanboard-network
-    healthcheck:
-      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-
-  chanboard-api-server:
-    build:
-      context: .
-      dockerfile: ChanBoardModernized.API/Dockerfile
-    image: anthonyr001/chanboard-api:latest
-    profiles: ["server"]
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - DEPLOYMENT_TARGET=server
-      - PORT=8080
-      - ConnectionStrings__BlobStorage=AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;AccountName=devstoreaccount1;BlobEndpoint=http://chanboard-blob-storage:10000/devstoreaccount1;
-    restart: unless-stopped
-    networks:
-      - chanboard-network
-    depends_on:
-      - chanboard-blob-storage
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-
-  chanboard-api-pi:
-    build:
-      context: .
-      dockerfile: ChanBoardModernized.API/Dockerfile.pi
-      platforms: 
-        - linux/arm64
-    image: anthonyr001/chanboard-api:pi-latest
-    profiles: ["pi"]
-    restart: unless-stopped
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Pi
-      - DEPLOYMENT_TARGET=pi
-      - PORT=5000
-    depends_on:
-      mongo:
-        condition: service_healthy
-      chanboard-blob-storage:
-        condition: service_started
-      nginx:
-        condition: service_started
-    networks:
-      - chanboard-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
 networks:
-  chanboard-network:
+  chanboard-network-dev:
     driver: bridge
+  chanboard-network-prod:
+    driver: bridge
+  chanboard-network-rpi:
+    driver: bridge
+
+# x- prefix makes these templates that won't be started
+x-chanboard-blob-storage:
+  &chanboard-blob-storage
+  image: mcr.microsoft.com/azure-storage/azurite:latest
+  restart: unless-stopped
+  command: "azurite-blob --blobHost 0.0.0.0 -l /data --skipApiVersionCheck"
+
+x-mongo:
+  &mongo
+  image: mongo:latest
+  restart: unless-stopped
+  environment:
+    MONGO_INITDB_DATABASE: ChanBoardDb

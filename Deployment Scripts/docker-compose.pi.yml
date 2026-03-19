@@ -1,0 +1,89 @@
+services:
+  nginx-rpi:
+    build:
+      context: ./.containers/nginx
+      dockerfile: Dockerfile.pi
+    image: chanboard-nginx:rpi
+    container_name: chanboard-nginx-rpi
+    restart: unless-stopped
+    ports:
+      - "6080:80"
+      - "6443:443"
+    volumes:
+      - ./.containers/nginx/logs/rpi:/var/log/nginx
+    networks:
+      - chanboard-network-rpi
+    depends_on:
+      chanboard-api-rpi:
+        condition: service_started
+      chanboard-blob-storage-rpi:
+        condition: service_started
+      mongo-rpi:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  chanboard-api-rpi:
+    build:
+      context: .
+      dockerfile: ChanBoardModernized.API/Dockerfile.pi
+      platforms: 
+        - linux/arm64
+    image: anthonyr001/chanboard-api:pi-latest
+    container_name: chanboard-api-rpi
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Pi
+      - DEPLOYMENT_TARGET=pi
+      - PORT=5000
+      - ConnectionStrings__BlobStorage=AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;AccountName=devstoreaccount1;BlobEndpoint=http://chanboard-blob-storage-rpi:10000/devstoreaccount1;
+      - ConnectionStrings__ChanBoardMongoDB=mongodb://admin:${MONGO_PASSWORD:-SuperSecretPassword123!}@mongo-rpi:27017
+      - DatabaseName=ChanBoardDb
+    networks:
+      - chanboard-network-rpi
+    depends_on:
+      mongo-rpi:
+        condition: service_healthy
+      chanboard-blob-storage-rpi:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  chanboard-blob-storage-rpi:
+    extends:
+      service: chanboard-blob-storage
+    container_name: chanboard-blob-storage-rpi
+    ports:
+      - "10002:10000"
+    volumes:
+      - ./.containers/blob_storage/data/rpi:/data
+    networks:
+      - chanboard-network-rpi
+
+  mongo-rpi:
+    extends:
+      service: mongo
+    container_name: chanboard-mongo-rpi
+    ports:
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-SuperSecretPassword123!}
+    volumes:
+      - ./.containers/mongo_data/rpi:/data/db
+    networks:
+      - chanboard-network-rpi
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s

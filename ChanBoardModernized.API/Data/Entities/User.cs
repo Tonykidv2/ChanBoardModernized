@@ -1,10 +1,8 @@
 ﻿using ChanBoardModernized.Shared.Components;
-using MongoDB.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace ChanBoardModernized.API.Data.Entities;
 
-[Collection("users")]
 public class User
 {
     [Key]

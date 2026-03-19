@@ -46,10 +46,8 @@ builder.Services.AddSingleton<BlobServiceClient>(sp =>
 
 builder.Services.AddDbContext<ChanContext>(options =>
 {
-    var ctString = builder.Configuration.GetConnectionString("ChanBoardMongoDB") ?? throw new InvalidOperationException("Connection string 'ChanBoardMongoDB' not found.");
-    var dbName = builder.Configuration.GetValue<string>("DatabaseName") ?? throw new InvalidOperationException("Database name not configured.");
-
-    options.UseMongoDB(ctString, dbName);
+    var connectionString = builder.Configuration.GetConnectionString("ChanBoardDB") ?? throw new InvalidOperationException("Connection string 'ChanBoardDB' not found.");
+    options.UseNpgsql(connectionString);
 });
 
 builder.Services.AddAuthentication(options =>

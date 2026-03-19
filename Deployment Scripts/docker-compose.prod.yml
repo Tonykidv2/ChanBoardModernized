@@ -1,0 +1,79 @@
+services:
+  nginx-prod:
+    build:
+      context: ./.containers/nginx
+      dockerfile: Dockerfile.server
+    image: chanboard-nginx:prod
+    container_name: chanboard-nginx-prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./.containers/nginx/logs/prod:/var/log/nginx
+      - ./ssl/certs:/etc/nginx/certs:ro
+    networks:
+      - chanboard-network-prod
+    depends_on:
+      - chanboard-api-prod
+      - chanboard-blob-storage-prod
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  chanboard-api-prod:
+    build:
+      context: .
+      dockerfile: ChanBoardModernized.API/Dockerfile
+    image: anthonyr001/chanboard-api:latest
+    container_name: chanboard-api-prod
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - DEPLOYMENT_TARGET=server
+      - PORT=8080
+      - ConnectionStrings__BlobStorage=AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;AccountName=devstoreaccount1;BlobEndpoint=http://chanboard-blob-storage-prod:10000/devstoreaccount1;
+    restart: unless-stopped
+    networks:
+      - chanboard-network-prod
+    depends_on:
+      - chanboard-blob-storage-prod
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  chanboard-blob-storage-prod:
+    extends:
+      service: chanboard-blob-storage
+    container_name: chanboard-blob-storage-prod
+    ports:
+      - "10000:10000"
+    volumes:
+      - ./.containers/blob_storage/data/prod:/data
+    networks:
+      - chanboard-network-prod
+
+  mongo-prod:
+    extends:
+      service: mongo
+    container_name: chanboard-mongo-prod
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-SuperSecretPassword123!}
+    volumes:
+      - ./.containers/mongo_data/prod:/data/db
+    networks:
+      - chanboard-network-prod
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s

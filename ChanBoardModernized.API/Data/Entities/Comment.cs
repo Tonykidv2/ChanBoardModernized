@@ -1,5 +1,4 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ChanBoardModernized.API.Data.Entities;
@@ -7,8 +6,6 @@ namespace ChanBoardModernized.API.Data.Entities;
 public class Comment
 {
     [Key]
-    [BsonId]
-    [BsonRepresentation(MongoDB.Bson.BsonType.String)]
     public Guid Id { get; set; }
     [MaxLength(500)]
     public string? DisplayAuthor { get; set; }

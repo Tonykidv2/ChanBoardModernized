@@ -1,0 +1,93 @@
+services:
+  nginx-dev:
+    build:
+      context: ./.containers/nginx
+      dockerfile: Dockerfile.server
+    image: chanboard-nginx:dev
+    container_name: chanboard-nginx-dev
+    restart: unless-stopped
+    ports:
+      - "5080:80"
+      - "5443:443"
+    volumes:
+      - ./.containers/nginx/logs/dev:/var/log/nginx
+      - ./.containers/nginx/conf.d/dev:/etc/nginx/conf.d:ro
+    networks:
+      - chanboard-network-dev
+    depends_on:
+      chanboard-api-dev:
+        condition: service_started
+      chanboard-blob-storage-dev:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  chanboard-api-dev:
+    build:
+      context: .
+      dockerfile: ChanBoardModernized.API/Dockerfile
+    image: chanboard-api:dev
+    container_name: chanboard-api-dev
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DEPLOYMENT_TARGET=server
+      - PORT=8080
+      - ConnectionStrings__BlobStorage=AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;AccountName=devstoreaccount1;BlobEndpoint=http://chanboard-blob-storage-dev:10000/devstoreaccount1;
+      - ConnectionStrings__ChanBoardDB=Host=postgres-dev;Port=5432;Database=ChanBoardDb;Username=postgres;Password=SuperSecretPassword123!
+    ports:
+      - "5008:8080"
+    restart: unless-stopped
+    networks:
+      - chanboard-network-dev
+    depends_on:
+      postgres-dev:
+        condition: service_healthy
+      chanboard-blob-storage-dev:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  chanboard-blob-storage-dev:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    container_name: chanboard-blob-storage-dev
+    restart: unless-stopped
+    ports:
+      - "10001:10000"
+    volumes:
+      - ./.containers/blob_storage/data/dev:/data
+    networks:
+      - chanboard-network-dev
+    command: "azurite-blob --blobHost 0.0.0.0 -l /data --skipApiVersionCheck"
+
+  postgres-dev:
+    image: postgres:17-alpine
+    container_name: chanboard-postgres-dev
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: SuperSecretPassword123!
+      POSTGRES_DB: ChanBoardDb
+    volumes:
+      - ./.containers/postgres_data/dev:/var/lib/postgresql/data
+    networks:
+      - chanboard-network-dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+networks:
+  chanboard-network-dev:
+    driver: bridge
