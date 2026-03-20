@@ -12,14 +12,14 @@ public class Comment
     public string TextContent { get; set; } = null!;
     public int PostDigits { get; set; }
     public DateTime CreatedAt { get; set; }
-    public Guid CommentPhotoId { get; set; }
-    public Guid UserId { get; set; }
+    public Guid? CommentPhotoId { get; set; }
+    public Guid? UserId { get; set; }
     public Guid ThreadId { get; set; }
     
-    public virtual Photo CommentPhoto { get; set; } = null!;
+    public virtual Photo? CommentPhoto { get; set; }
 
     [ForeignKey(nameof(UserId))]
-    public virtual User User { get; set; } = null!;
+    public virtual User? User { get; set; }
 
     [ForeignKey(nameof(ThreadId))]
     public virtual Thread Thread { get; set; } = null!;

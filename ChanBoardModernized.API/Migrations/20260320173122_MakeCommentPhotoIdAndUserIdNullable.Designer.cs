@@ -3,6 +3,7 @@ using System;
 using ChanBoardModernized.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ChanBoardModernized.API.Migrations
 {
     [DbContext(typeof(ChanContext))]
-    partial class ChanContextModelSnapshot : ModelSnapshot
+    [Migration("20260320173122_MakeCommentPhotoIdAndUserIdNullable")]
+    partial class MakeCommentPhotoIdAndUserIdNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
