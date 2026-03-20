@@ -133,22 +133,6 @@ public static class ChanBoardEndPoints
                     recentComments.Add(firstComment);
                     recentComments.AddRange(lastTwoComments);
 
-
-                    //recentComments = await dbContext.Comments
-                    //    .AsNoTracking()
-                    //    .Where(c => c.ThreadId == thread.Id)
-                    //    .OrderByDescending(c => c.CreatedAt)
-                    //    .Take(2)
-                    //    .Select(c => new CommentDTO()
-                    //    {
-                    //        Id = c.Id,
-                    //        Content = c.TextContent,
-                    //        CreatedAt = c.CreatedAt,
-                    //        ThreadId = c.ThreadId,
-                    //        PostDigits = c.PostDigits,
-                    //        Author = c.DisplayAuthor
-
-                    //    }).ToListAsync();
                 }
                 thread.Comments = recentComments.OrderBy(c => c.CreatedAt).ToList();
                 recentComments[0].Title = thread.Title;
@@ -216,7 +200,7 @@ public static class ChanBoardEndPoints
                 ThreadId = commentDto.ThreadId,
                 DisplayAuthor = commentDto.Author
             };
-            var Nextdigit = await commentCounterService.GetNextCounterValueAsync(comment.ThreadId);
+            var Nextdigit = await commentCounterService.GetNextCounterValueAsync(thread.BoardId);
             comment.PostDigits = Nextdigit;
 
             dbContext.Threads.Update(thread);
