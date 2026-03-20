@@ -25,7 +25,8 @@ public static class ChanBoardEndPoints
                 Description = boards.Description
             }).ToListAsync();
             return Results.Ok(boards);
-        });
+        })
+            .WithTags("CommonBoardsEndpoints");
 
         //get board by short name
         app.MapGet("/api/boards/{shortName}", async (string shortName, ChanContext dbContext) =>
@@ -45,101 +46,103 @@ public static class ChanBoardEndPoints
                 return Results.NotFound();
             }
             return Results.Ok(board);
-        });
+        })
+            .WithTags("CommonBoardsEndpoints");
 
         //Get Threads and recent comments for each thread for a board and pagination
         app.MapGet("/api/boards/{shortName}/threads/{pageNumber}/{pageSize}", async (string shortName, int pageNumber, int pageSize, ChanContext dbContext) =>
         {
             var board = await dbContext.Boards
-            .AsNoTracking()
-            .FirstOrDefaultAsync(b => b.ShortName == shortName);
+                .AsNoTracking()
+                .FirstOrDefaultAsync(b => b.ShortName == shortName);
+
             if (board == null)
             {
                 return Results.NotFound();
             }
 
-            //Get Recent threads for the board with pagination
+            // Get threads with pagination
             var threads = await dbContext.Threads
-            .AsNoTracking()
-            .Where(t => t.BoardId == board.Id)
-            .OrderByDescending(t => t.CreatedAt)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .Select(t => new ThreadDTO()
-            {
-                Id = t.Id,
-                Title = t.Title ?? "",
-                CreatedDate = t.CreatedAt,
-                Comments = new List<CommentDTO>(),
-                BoardId = t.BoardId,
-                CommentCount = t.CommentCount
-            }).ToListAsync();
+                .AsNoTracking()
+                .Where(t => t.BoardId == board.Id)
+                .OrderByDescending(t => t.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(t => new ThreadDTO()
+                {
+                    Id = t.Id,
+                    Title = t.Title ?? "",
+                    CreatedDate = t.CreatedAt,
+                    Comments = new List<CommentDTO>(),
+                    BoardId = t.BoardId,
+                    CommentCount = t.CommentCount
+                })
+                .ToListAsync();
 
+            if (!threads.Any())
+            {
+                return Results.Ok(threads);
+            }
+
+            var threadIds = threads.Select(t => t.Id).ToList();
+
+            // Single query to get all relevant comments for all threads
+            var allComments = await dbContext.Comments
+                .AsNoTracking()
+                .Where(c => threadIds.Contains(c.ThreadId))
+                .OrderBy(c => c.ThreadId)
+                .ThenBy(c => c.CreatedAt)
+                .Select(c => new CommentDTO()
+                {
+                    Id = c.Id,
+                    Content = c.TextContent,
+                    CreatedAt = c.CreatedAt,
+                    ThreadId = c.ThreadId,
+                    PostDigits = c.PostDigits,
+                    Author = c.DisplayAuthor
+                })
+                .ToListAsync();
+
+            // Group comments by thread for efficient lookup
+            var commentsByThread = allComments
+                .GroupBy(c => c.ThreadId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // Populate comments for each thread
             foreach (var thread in threads)
             {
-                var recentComments = new List<CommentDTO>();
+                if (!commentsByThread.TryGetValue(thread.Id, out var threadComments))
+                {
+                    continue;
+                }
+
+                List<CommentDTO> selectedComments;
+
                 if (thread.CommentCount < 4)
                 {
-                    recentComments = await dbContext.Comments
-                        .AsNoTracking()
-                        .Where(c => c.ThreadId == thread.Id)
-                        .OrderBy(c => c.CreatedAt)
-                        .Select(c => new CommentDTO()
-                        {
-                            Id = c.Id,
-                            Content = c.TextContent,
-                            CreatedAt = c.CreatedAt,
-                            ThreadId = c.ThreadId,
-                            PostDigits = c.PostDigits,
-                            Author = c.DisplayAuthor
-                        }).ToListAsync();
+                    selectedComments = threadComments;
                 }
                 else
                 {
-                    //Get first comment then last 2 comments
-                    var firstComment = await dbContext.Comments
-                        .AsNoTracking()
-                        .Where(c => c.ThreadId == thread.Id)
-                        .OrderBy(c => c.CreatedAt)
-                        .Select(c => new CommentDTO()
-                        {
-                            Id = c.Id,
-                            Content = c.TextContent,
-                            CreatedAt = c.CreatedAt,
-                            ThreadId = c.ThreadId,
-                            PostDigits = c.PostDigits,
-                            Author = c.DisplayAuthor
-                        }).FirstOrDefaultAsync();
-                    if (firstComment == null)
+                    // First comment + last 2 comments
+                    selectedComments = new List<CommentDTO>
                     {
-                        // This should not happen, but just in case
-                        // Thread found but no comments found
-                        continue;
-                    }
-                    var lastTwoComments = await dbContext.Comments
-                        .AsNoTracking()
-                        .Where(c => c.ThreadId == thread.Id)
-                        .OrderByDescending(c => c.CreatedAt)
-                        .Take(2)
-                        .Select(c => new CommentDTO()
-                        {
-                            Id = c.Id,
-                            Content = c.TextContent,
-                            CreatedAt = c.CreatedAt,
-                            ThreadId = c.ThreadId,
-                            PostDigits = c.PostDigits,
-                            Author = c.DisplayAuthor
-                        }).ToListAsync();
-                    recentComments.Add(firstComment);
-                    recentComments.AddRange(lastTwoComments);
-
+                        threadComments[0]
+                    };
+                    selectedComments.AddRange(threadComments.TakeLast(2));
                 }
-                thread.Comments = recentComments.OrderBy(c => c.CreatedAt).ToList();
-                recentComments[0].Title = thread.Title;
+
+                if (selectedComments.Any())
+                {
+                    selectedComments[0].Title = thread.Title;
+                }
+
+                thread.Comments = selectedComments;
             }
 
             return Results.Ok(threads);
-        });
+        })
+            .WithTags("CommonBoardsEndpoints");
 
         //Create thread
         app.MapPost("api/boards/threads", async (ThreadDTO threadDto, ChanContext dbContext, CommentCounterService commentCounterService) =>
@@ -177,7 +180,8 @@ public static class ChanBoardEndPoints
             threadDto.Id = thread.Id;
             var result = new ThreadResponseDTO(threadDto, string.Empty);
             return Results.Ok(result);
-        });
+        })
+            .WithTags("CommonBoardsEndpoints");
         
         //Create comment
         app.MapPost("api/comment", async (CommentDTO commentDto, ChanContext dbContext, CommentCounterService commentCounterService) =>
@@ -212,7 +216,8 @@ public static class ChanBoardEndPoints
 
             var result = new CommentResponseDTO(commentDto, string.Empty);
             return Results.Ok(result);
-        });
+        })
+            .WithTags("CommonBoardsEndpoints");
 
         //Get comments for a thread
         app.MapGet("/api/threads/{threadId}/comments", async (Guid threadId, ChanContext dbContext) =>
@@ -242,7 +247,8 @@ public static class ChanBoardEndPoints
             }
 
             return Results.Ok(comments);
-        });
+        })
+            .WithTags("CommonBoardsEndpoints");
 
 
         ///Admin Endpoints go here for managing boards, threads, comments, users, etc.
@@ -275,7 +281,8 @@ public static class ChanBoardEndPoints
                 return Results.InternalServerError(new BoardResponseDTO(null, "Something went wrong adding board to database"));
             }
         }).RequireAuthorization(policy =>
-                policy.RequireRole(UserRole.Admin.ToString()));
+                policy.RequireRole(UserRole.Admin.ToString()))
+                .WithTags("AdministrativeEndpoints");
 
         app.MapPost("/api/auth/cleanup-tokens", async (ChanContext dbContext) =>
         {
@@ -292,7 +299,8 @@ public static class ChanBoardEndPoints
 
             return Results.Ok(new { DeletedCount = count, CutoffDate = cutoffDate });
         }).RequireAuthorization(policy => 
-                policy.RequireRole(UserRole.Admin.ToString()));
+                policy.RequireRole(UserRole.Admin.ToString()))
+                .WithTags("AdministrativeEndpoints");
 
         return app;
     }

@@ -26,12 +26,12 @@ public static class UserEndPoints
                 user.Username,
                 user.Role
             });
-
         }).RequireAuthorization(policy => 
             policy.RequireRole(
                 UserRole.Admin.ToString(), 
                 UserRole.Moderator.ToString(), 
-                UserRole.User.ToString()));
+                UserRole.User.ToString()))
+        .WithTags("Users");
 
         //get all users (admin only)
         app.MapGet("/api/users", async (ChanContext dbContext) =>
@@ -49,7 +49,8 @@ public static class UserEndPoints
             return Results.Ok(users);
         }).RequireAuthorization(policy => 
             policy.RequireRole(
-                UserRole.Admin.ToString()));
+                UserRole.Admin.ToString()))
+        .WithTags("Users");
 
         //register new user
         app.MapPost("/api/users/register", async (RegisterDTO registerDto, ChanContext dbContext) =>
@@ -77,7 +78,8 @@ public static class UserEndPoints
             dbContext.Users.Add(newUser);
             await dbContext.SaveChangesAsync();
             return Results.Created();
-        });
+        })
+        .WithTags("Users");
 
         return app;
     }

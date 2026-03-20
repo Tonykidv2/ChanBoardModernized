@@ -70,7 +70,7 @@ namespace ChanBoardModernized
                 // iOS simulator → host machine
                 return "https://localhost:32001/";
 #elif WINDOWS
-                        return "http://localhost:8080/";
+                return "http://localhost:8080/";
 #else
                 return "https://localhost:8080/";
 #endif
