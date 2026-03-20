@@ -36,6 +36,30 @@ public class ChanContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        foreach (var entity in modelBuilder.Model.GetEntityTypes())
+        {
+            // Convert table names to lowercase
+            entity.SetTableName(entity.GetTableName()?.ToLower());
+
+            // Convert column names to lowercase
+            foreach (var property in entity.GetProperties())
+            {
+                property.SetColumnName(property.GetColumnName()?.ToLower());
+            }
+
+            // Convert key names to lowercase
+            foreach (var key in entity.GetKeys())
+            {
+                key.SetName(key.GetName()?.ToLower());
+            }
+
+            // Convert index names to lowercase
+            foreach (var index in entity.GetIndexes())
+            {
+                index.SetDatabaseName(index.GetDatabaseName()?.ToLower());
+            }
+        }
+
         // Board configuration
         modelBuilder.Entity<Board>(entity =>
         {
