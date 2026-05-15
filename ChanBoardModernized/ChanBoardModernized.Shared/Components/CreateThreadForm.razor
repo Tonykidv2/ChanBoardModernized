@@ -70,7 +70,7 @@
             {
                 Title = "Success",
                 //Message = "Thread created successfully.",
-                Content = @<div>Thread Posted! <button class="btn btn-sm btn-primary" @onclick="@(() => NavigateToThread(response.Thread!.Id))">Go to new Board</button></div>,
+                Content = @<div>Thread Posted! <button class="btn btn-sm btn-primary" @onclick="@(() => NavigateToThread(response.Thread!.Id))">Go to new Thread</button></div>,
                 Type = ToastType.Success,
                 HelpText = $"{DateTime.Now}"
             });
